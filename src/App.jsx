@@ -22,6 +22,9 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [liveVehicleData, setLiveVehicleData] = useState([]);
 
+  // Full Screen Mode State
+  const [isSheetFullScreen, setIsSheetFullScreen] = useState(false);
+
   useEffect(() => {
     if (isAuthenticated) {
       fetchDataFromSheets();
@@ -30,7 +33,6 @@ export default function App() {
 
   const handleLoginSubmit = (e) => {
     e.preventDefault();
-    // 🔐 Hardcoded gate credentials. Modify these to adjust access privileges!
     if (username.trim() === 'viago' && password === 'admin123') {
       setIsAuthenticated(true);
       setLoginError('');
@@ -77,14 +79,13 @@ export default function App() {
             received,
             pending: revenue - received
           };
-//        }).filter(item => item.vehicleNo !== 'UNKNOWN' && item.vehicleNo !== '');
-          
-}).filter(item => 
+        }).filter(item => 
           item.vehicleNo !== 'UNKNOWN' && 
           item.vehicleNo !== '' && 
           item.vehicleNo !== 'Vehicle No.' && 
           !item.vehicleNo.toLowerCase().includes('total')
         );
+
         setLiveVehicleData(parsed);
         setIsLoading(false);
       })
@@ -169,24 +170,26 @@ export default function App() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'Segoe UI, system-ui, sans-serif', backgroundColor: '#f1f5f9' }}>
       
-      {/* GLOBAL APPLICATION CONTROL SIDEBAR */}
-      <aside style={{ width: '260px', backgroundColor: '#0f172a', color: '#fff', padding: '24px 16px', display: 'flex', flexDirection: 'column', justifyBetween: 'space-between' }}>
-        <div>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#38bdf8', marginBottom: '4px' }}>Viago Central</h2>
-          <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 32px 0' }}>Connected Infrastructure Node</p>
+      {/* GLOBAL APPLICATION CONTROL SIDEBAR (Hidden if sheet is full screen) */}
+      {(!isSheetFullScreen || activeTab !== 'googlesheet') && (
+        <aside style={{ width: '260px', backgroundColor: '#0f172a', color: '#fff', padding: '24px 16px', display: 'flex', flexDirection: 'column' }}>
+          <div>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#38bdf8', marginBottom: '4px' }}>Viago Central</h2>
+            <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 32px 0' }}>Connected Infrastructure Node</p>
+            
+            <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <button onClick={() => setActiveTab('dashboard')} style={{ padding: '12px 16px', border: 'none', borderRadius: '6px', textAlign: 'left', cursor: 'pointer', backgroundColor: activeTab === 'dashboard' ? '#1e293b' : 'transparent', color: activeTab === 'dashboard' ? '#38bdf8' : '#94a3b8', fontWeight: '700', width: '100%' }}>📊 Metrics Matrix</button>
+              <button onClick={() => setActiveTab('datastudio')} style={{ padding: '12px 16px', border: 'none', borderRadius: '6px', textAlign: 'left', cursor: 'pointer', backgroundColor: activeTab === 'datastudio' ? '#1e293b' : 'transparent', color: activeTab === 'datastudio' ? '#38bdf8' : '#94a3b8', fontWeight: '700', width: '100%' }}>📈 Looker Analytics</button>
+              <button onClick={() => setActiveTab('googlesheet')} style={{ padding: '12px 16px', border: 'none', borderRadius: '6px', textAlign: 'left', cursor: 'pointer', backgroundColor: activeTab === 'googlesheet' ? '#1e293b' : 'transparent', color: activeTab === 'googlesheet' ? '#38bdf8' : '#94a3b8', fontWeight: '700', width: '100%' }}>📋 Master Spreadsheet</button>
+            </nav>
+          </div>
           
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <button onClick={() => setActiveTab('dashboard')} style={{ padding: '12px 16px', border: 'none', borderRadius: '6px', textAlign: 'left', cursor: 'pointer', backgroundColor: activeTab === 'dashboard' ? '#1e293b' : 'transparent', color: activeTab === 'dashboard' ? '#38bdf8' : '#94a3b8', fontWeight: '700', width: '100%' }}>📊 Metrics Matrix</button>
-            <button onClick={() => setActiveTab('datastudio')} style={{ padding: '12px 16px', border: 'none', borderRadius: '6px', textAlign: 'left', cursor: 'pointer', backgroundColor: activeTab === 'datastudio' ? '#1e293b' : 'transparent', color: activeTab === 'datastudio' ? '#38bdf8' : '#94a3b8', fontWeight: '700', width: '100%' }}>📈 Looker Analytics</button>
-            <button onClick={() => setActiveTab('googlesheet')} style={{ padding: '12px 16px', border: 'none', borderRadius: '6px', textAlign: 'left', cursor: 'pointer', backgroundColor: activeTab === 'googlesheet' ? '#1e293b' : 'transparent', color: activeTab === 'googlesheet' ? '#38bdf8' : '#94a3b8', fontWeight: '700', width: '100%' }}>📋 Master Spreadsheet</button>
-          </nav>
-        </div>
-        
-        <button onClick={() => setIsAuthenticated(false)} style={{ backgroundColor: '#334155', color: '#cbd5e1', border: 'none', padding: '10px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer', marginTop: 'auto' }}>🔒 Sever Terminal Session</button>
-      </aside>
+          <button onClick={() => setIsAuthenticated(false)} style={{ backgroundColor: '#334155', color: '#cbd5e1', border: 'none', padding: '10px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: '600', cursor: 'pointer', marginTop: 'auto' }}>🔒 Sever Terminal Session</button>
+        </aside>
+      )}
 
       {/* PRIMARY WORKSPACE MONITOR DISPLAY */}
-      <main style={{ flex: 1, padding: '32px', display: 'flex', flexDirection: 'column' }}>
+      <main style={{ flex: 1, padding: isSheetFullScreen && activeTab === 'googlesheet' ? '0' : '32px', display: 'flex', flexDirection: 'column', position: 'relative' }}>
         
         {/* VIEW TAB 1: OPERATIONAL LEDGER VIEW */}
         {activeTab === 'dashboard' && (
@@ -279,10 +282,53 @@ export default function App() {
 
         {/* VIEW TAB 3: LIVE SPREADSHEET LOOKUP MODULE */}
         {activeTab === 'googlesheet' && (
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <h1 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#0f172a', marginBottom: '4px' }}>Master Database Lookup</h1>
-            <p style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '20px' }}>Direct read/write viewport targeting your source spreadsheet</p>
-            <iframe src={GOOGLE_SHEETS_EMBED_URL} style={{ width: '100%', flex: 1, border: 'none', borderRadius: '8px', backgroundColor: '#fff', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }} title="Google Sheets Frame" />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
+            {!isSheetFullScreen && (
+              <>
+                <h1 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#0f172a', marginBottom: '4px' }}>Master Database Terminal</h1>
+                <p style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '20px' }}>Direct read/write viewport targeting your source spreadsheet</p>
+              </>
+            )}
+
+            {/* CONTROL PANEL BAR */}
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'flex-end', 
+              padding: '10px 16px', 
+              backgroundColor: '#0f172a', 
+              borderRadius: isSheetFullScreen ? '0' : '8px 8px 0 0',
+              alignItems: 'center'
+            }}>
+              <button 
+                onClick={() => setIsSheetFullScreen(!isSheetFullScreen)} 
+                style={{ 
+                  backgroundColor: '#38bdf8', 
+                  color: '#0f172a', 
+                  border: 'none', 
+                  padding: '6px 14px', 
+                  borderRadius: '4px', 
+                  fontWeight: '700', 
+                  cursor: 'pointer',
+                  fontSize: '0.85rem'
+                }}
+              >
+                {isSheetFullScreen ? '📉 Exit Full Screen' : '🔲 Expand Full Screen'}
+              </button>
+            </div>
+
+            <iframe 
+              src={GOOGLE_SHEETS_EMBED_URL} 
+              style={{ 
+                width: '100%', 
+                flex: 1, 
+                minHeight: isSheetFullScreen ? 'calc(100vh - 42px)' : '650px',
+                border: 'none', 
+                borderRadius: isSheetFullScreen ? '0' : '0 0 8px 8px', 
+                backgroundColor: '#fff', 
+                boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' 
+              }} 
+              title="Google Sheets Frame" 
+            />
           </div>
         )}
 
