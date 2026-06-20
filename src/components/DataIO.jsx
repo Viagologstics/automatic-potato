@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
 
-export default function DataIO({ currentUser, ALL_COLUMNS, consolidatedRows, onRefresh, isLoading, apiEndpoint, dynamicLinks = [] }) {
+export default function DataIO({ 
+  currentUser, 
+  ALL_COLUMNS = [], 
+  consolidatedRows = [], 
+  onRefresh, 
+  isLoading, 
+  apiEndpoint, 
+  dynamicLinks = [] 
+}) {
   const [isSyncingDB, setIsSyncingDB] = useState(false);
   const [isFetchingDump, setIsFetchingDump] = useState(false);
   
@@ -10,13 +18,10 @@ export default function DataIO({ currentUser, ALL_COLUMNS, consolidatedRows, onR
   
   const [chosenSheetId, setChosenSheetId] = useState(approvedSheets[0]?.id || '');
 
-  // NEW: Button Action 2 - Fetches dump file directly from Web App URL
   const handleFetchScriptDump = async () => {
     setIsFetchingDump(true);
     try {
       const targetUrl = "https://script.google.com/macros/s/AKfycbwNIO5hWPBBPriE0GcyHiOFEorI6fXgRZDEChhsHddFBEq5azLu6bjhv-wERedNIzXRpw/exec";
-      
-      // Requesting the Google script to return the stored row dump data
       const response = await fetch(`${targetUrl}?action=fetch_dump&operator=${encodeURIComponent(currentUser?.username || 'unknown')}`);
       
       if (!response.ok) throw new Error("Network response was not ok");
@@ -28,7 +33,6 @@ export default function DataIO({ currentUser, ALL_COLUMNS, consolidatedRows, onR
         return;
       }
 
-      // Convert response rows directly into a downloadable CSV
       let csvContent = "";
       if (data.rows.length > 0) {
         csvContent += Object.keys(data.rows[0]).join(",") + "\n";
@@ -127,7 +131,6 @@ export default function DataIO({ currentUser, ALL_COLUMNS, consolidatedRows, onR
         </button>
       )}
 
-      {/* NEW: Render download from script dump link button element */}
       {currentUser?.canExport && (
         <button onClick={handleFetchScriptDump} disabled={isFetchingDump} style={{ backgroundColor: '#7c3aed', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '6px', fontWeight: '700', cursor: 'pointer', fontSize: '0.85rem' }}>
           {isFetchingDump ? '📥 Downloading...' : '📥 Fetch Script Dump'}
