@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 
-export default function DataIO({ currentUser, ALL_COLUMNS, consolidatedRows, onRefresh, isLoading, apiEndpoint, dynamicLinks }) {
+export default function DataIO({ currentUser, ALL_COLUMNS, consolidatedRows, onRefresh, isLoading, apiEndpoint, dynamicLinks = [] }) {
   const [isSyncingDB, setIsSyncingDB] = useState(false);
   
+  // Safe fallbacks to prevent crashes if properties are missing
+  const safeLinks = dynamicLinks || [];
   const isRestrictedScope = currentUser?.role !== 'admin' && currentUser?.exportScope === 'selective';
-  const approvedSheets = dynamicLinks.filter(link => currentUser?.allowedExportSheets?.includes(link.id));
+  const approvedSheets = safeLinks.filter(link => currentUser?.allowedExportSheets?.includes(link.id));
+  
   const [chosenSheetId, setChosenSheetId] = useState(approvedSheets[0]?.id || '');
 
   const handleExportDataPipeline = async () => {
@@ -18,11 +21,11 @@ export default function DataIO({ currentUser, ALL_COLUMNS, consolidatedRows, onR
       activeExportName = selectedSheetObj.name.replace(/\s+/g, '_');
     }
 
-    const activeHeaders = ALL_COLUMNS.filter(col => currentUser.allowedColumns.includes(col.id));
+    const activeHeaders = (ALL_COLUMNS || []).filter(col => currentUser?.allowedColumns?.includes(col.id));
     let csvContent = activeHeaders.map(h => h.label).join(",") + "\n";
 
-    consolidatedRows.forEach(row => {
-      const netProfit = row.revenue - row.cost - row.emi;
+    (consolidatedRows || []).forEach(row => {
+      const netProfit = (row.revenue || 0) - (row.cost || 0) - (row.emi || 0);
       const dataMapping = { ...row, netProfit, vehicleNo: row.id, truckType: row.type };
       const line = activeHeaders.map(h => `"${dataMapping[h.id] !== undefined ? dataMapping[h.id] : ''}"`).join(",");
       csvContent += line + "\n";
@@ -63,7 +66,7 @@ export default function DataIO({ currentUser, ALL_COLUMNS, consolidatedRows, onR
     <div style={{ display: 'flex', gap: '12px', alignItems: 'center', backgroundColor: '#f8fafc', padding: '8px 12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
       
       {/* Target selector dropdown appears only if Admin configured selective sheet constraints */}
-      {currentUser?.canExport && isRestrictedScope && (
+      {currentUser?.canExport && isRestrictedScope && approvedSheets.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <span style={{ fontSize: '0.7rem', fontWeight: '700', color: '#475569' }}>Target Export Sheet:</span>
           <select value={chosenSheetId} onChange={e => setChosenSheetId(e.target.value)} style={{ padding: '6px', fontSize: '0.8rem', borderRadius: '4px', border: '1px solid #cbd5e1', backgroundColor: '#fff' }}>
