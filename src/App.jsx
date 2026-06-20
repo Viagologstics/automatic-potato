@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 // ⚠️ PASTE YOUR COPIED GOOGLE APPS SCRIPT URL HERE
-const GOOGLE_SHEETS_API_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbwNIO5hWPBBPriE0GcyHiOFEorI6fXgRZDEChhsHddFBEq5azLu6bjhv-wERedNIzXRpw/exec";
 
 export default function App() {
   const [activePage, setActivePage] = useState('vehicles'); 
