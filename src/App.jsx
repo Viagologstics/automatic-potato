@@ -42,7 +42,8 @@ export default function App() {
 
   const fetchDataFromSheets = () => {
     setIsLoading(true);
-    fetch(GOOGLE_SHEETS_API_URL)
+    // Append a cache-busting timestamp so Google Web App returns completely fresh data
+    fetch(`${GOOGLE_SHEETS_API_URL}?_cb=${new Date().getTime()}`)
       .then(res => res.json())
       .then(data => {
         const parsed = data.map(item => {
@@ -70,7 +71,8 @@ export default function App() {
             cleanDate: rawDate,
             vehicleNo: String(item["Vehicle No."] || '').trim(),
             truckType: item["Type Of Truck"] || 'Other',
-            status: item["Trip Status"] || 'COMPLETE',
+            // 🔄 CHANGED HERE: Now pulls explicitly from your sheet's "Contract Status" header column
+            status: item["Contract Status"] || item["Trip Status"] || 'COMPLETE',
             kms: kmsRun,
             revenue,
             cost,
@@ -197,6 +199,27 @@ export default function App() {
                 <h1 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>Operational Fleet Ledger</h1>
                 <p style={{ color: '#64748b', fontSize: '0.85rem' }}>Compiling live formula tracks from primary spreadsheet database</p>
               </div>
+              
+              {/* 🔄 REFRESH BUTTON COMPONENT */}
+              <button 
+                onClick={fetchDataFromSheets} 
+                disabled={isLoading}
+                style={{ 
+                  backgroundColor: isLoading ? '#cbd5e1' : '#0284c7', 
+                  color: '#fff', 
+                  border: 'none', 
+                  padding: '10px 18px', 
+                  borderRadius: '6px', 
+                  fontWeight: '700', 
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                }}
+              >
+                {isLoading ? '🔄 Syncing...' : '🔄 Refresh Data'}
+              </button>
             </header>
 
             {isLoading && (
@@ -242,7 +265,7 @@ export default function App() {
                       <tr key={index} style={{ borderBottom: '1px solid #f1f5f9' }}>
                         <td style={{ padding: '14px 16px', fontWeight: '700' }}>{row.id}</td>
                         <td style={{ padding: '14px 16px' }}>{row.type}</td>
-                        <td style={{ padding: '14px 16px' }}><span style={{ padding: '2px 8px', borderRadius: '12px', backgroundColor: '#f8fafc' }}>{row.status}</span></td>
+                        <td style={{ padding: '14px 16px' }}><span style={{ padding: '2px 8px', borderRadius: '12px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>{row.status}</span></td>
                         <td style={{ padding: '14px 16px' }}>{formatCurrency(row.kms)} km</td>
                         <td style={{ padding: '14px 16px', fontWeight: '600', color: '#16a34a' }}>₹{formatCurrency(row.revenue)}</td>
                         <td style={{ padding: '14px 16px', color: '#ef4444' }}>₹{formatCurrency(row.cost)}</td>
