@@ -137,8 +137,19 @@ export default function AdminPanel({ ALL_COLUMNS, users, setUsers, dynamicLinks,
             <h3 style={{ margin: '0 0 4px 0', color: '#0f172a' }}>Registered Operator Log Matrix</h3>
             <p style={{ color: '#64748b', fontSize: '0.8rem', margin: '0 0 16px 0' }}>Select an operator below to grant features, modify visibility, or edit data download scopes.</p>
             
-            <select value={selectedUserIndex} onChange={e => setSelectedUserIndex(parseInt(e.target.value))} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginBottom: '16px', fontWeight: 'bold', color: '#0f172a' }}>
-              {users.map((u, idx) => (
+<select value={selectedUserIndex} onChange={e => setSelectedUserIndex(parseInt(e.target.value))} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginBottom: '16px', fontWeight: 'bold', color: '#0f172a' }}>
+  {users.map((u, idx) => (
+    <option key={idx} value={idx}>👤 {u?.username} ({u?.role?.toUpperCase()})</option>
+  ))}
+</select>
+
+{/* 🔽 PASTE THIS DIRECTLY HERE 🔽 */}
+{activeReviewUser && (
+  <div style={{ marginBottom: '12px', padding: '10px', backgroundColor: '#fff', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+    <span style={{ display: 'block', fontSize: '0.8rem', color: '#64748b' }}>Active Access Token:</span>
+    <strong style={{ fontSize: '1rem', color: '#0f172a' }}>🔑 {activeReviewUser.password || 'None Set'}</strong>
+  </div>
+)}              {users.map((u, idx) => (
                 <option key={idx} value={idx}>👤 {u?.username} ({u?.role?.toUpperCase()})</option>
               ))}
             </select>
