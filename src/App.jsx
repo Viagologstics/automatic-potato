@@ -1,102 +1,90 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import Dashboard from './components/Dashboard';
-import AdminPanel from './components/AdminPanel';
-import { parseVehicleData } from './utils/dataParser';
+import React, { useState } from 'react';
 
-const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbwNIO5hWPBBPriE0GcyHiOFEorI6fXgRZDEChhsHddFBEq5azLu6bjhv-wERedNIzXRpw/exec";
+export default function AdminPanel({ ALL_COLUMNS, users, setUsers, dynamicLinks, setDynamicLinks }) {
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserPass, setNewUserPass] = useState('');
+  const [newUserCols, setNewUserCols] = useState([]);
+  const [newUserImport, setNewUserImport] = useState(false);
+  const [newUserExport, setNewUserExport] = useState(false);
+  const [newLinkName, setNewLinkName] = useState('');
+  const [newLinkUrl, setNewLinkUrl] = useState('');
 
-const ALL_COLUMNS = [
-  { id: 'vehicleNo', label: 'Vehicle No.' },
-  { id: 'truckType', label: 'Specification' },
-  { id: 'status', label: 'Contract Status' },
-  { id: 'kms', label: 'Total Distance' },
-  { id: 'revenue', label: 'Calculated Revenue' },
-  { id: 'cost', label: 'Operating Cost' },
-  { id: 'emi', label: 'EMI Share' },
-  { id: 'netProfit', label: 'Net Earnings' },
-  { id: 'received', label: 'Collected' },
-  { id: 'pending', label: 'Outstandings' }
-];
-
-export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [liveVehicleData, setLiveVehicleData] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const [dynamicLinks, setDynamicLinks] = useState([
-    { name: "Master Spreadsheet", url: "https://docs.google.com/spreadsheets/d/14df7O7yZp5dBXaNKucWAXuDAB7YWwyIr6n2_e5s5Jzg/edit?usp=sharing" },
-    { name: "Contract Sub-Sheet View", url: "https://docs.google.com/spreadsheets/d/14df7O7yZp5dBXaNKucWAXuDAB7YWwyIr6n2_e5s5Jzg/edit?gid=1098332403#gid=1098332403" }
-  ]);
-  const [selectedLinkIndex, setSelectedLinkIndex] = useState(0);
-
-  const [users, setUsers] = useState([
-    { username: 'viago', password: 'admin123', role: 'admin', allowedColumns: ALL_COLUMNS.map(c => c.id), canImport: true, canExport: true },
-    { username: 'operator1', password: 'user123', role: 'staff', allowedColumns: ['vehicleNo', 'truckType', 'status', 'kms'], canImport: false, canExport: true }
-  ]);
-
-  useEffect(() => {
-    if (isAuthenticated) fetchDataFromSheets();
-  }, [isAuthenticated]);
-
-  const fetchDataFromSheets = () => {
-    setIsLoading(true);
-    fetch(`${GOOGLE_SHEETS_API_URL}?_cb=${new Date().getTime()}`)
-      .then(res => res.json())
-      .then(data => {
-        setLiveVehicleData(parseVehicleData(data));
-        setIsLoading(false);
-      })
-      .catch(() => setIsLoading(false));
-  };
-
-  const handleLogin = (e) => {
+  const handleCreateUser = (e) => {
     e.preventDefault();
-    const matched = users.find(u => u.username === username.trim() && u.password === password);
-    if (matched) {
-      setCurrentUser(matched);
-      setIsAuthenticated(true);
-    } else {
-      setLoginError('Invalid identity credentials.');
-    }
+    if (!newUserName || !newUserPass) return;
+    
+    // Normalize user to avoid case-sensitivity lookup issues
+    setUsers([...users, {
+      username: newUserName.trim(),
+      password: newUserPass,
+      role: 'staff',
+      allowedColumns: newUserCols.length ? newUserCols : ['vehicleNo', 'truckType'],
+      canImport: newUserImport,
+      canExport: newUserExport
+    }]);
+    
+    setNewUserName(''); setNewUserPass(''); setNewUserCols([]); setNewUserImport(false); setNewUserExport(false);
+    alert(`Account context for "${newUserName}" created and cached.`);
   };
 
-  if (!isAuthenticated) {
-    return (
-      <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0f172a', fontFamily: 'sans-serif' }}>
-        <form onSubmit={handleLogin} style={{ backgroundColor: '#fff', padding: '40px', borderRadius: '12px', width: '100%', maxWidth: '360px' }}>
-          <h3>Viago Access Gateway</h3>
-          {loginError && <p style={{ color: 'red', fontSize: '0.8rem' }}>{loginError}</p>}
-          <input type="text" placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} style={{ width: '100%', padding: '10px', marginBottom: '12px', boxSizing: 'border-box' }} required />
-          <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} style={{ width: '100%', padding: '10px', marginBottom: '20px', boxSizing: 'border-box' }} required />
-          <button type="submit" style={{ width: '100%', padding: '12px', backgroundColor: '#0284c7', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Authenticate</button>
-        </form>
-      </div>
-    );
-  }
+  const handleAddLink = (e) => {
+    e.preventDefault();
+    if (!newLinkName || !newLinkUrl) return;
+
+    setDynamicLinks([...dynamicLinks, { 
+      id: `link_${Date.now()}`, 
+      name: newLinkName, 
+      url: newLinkUrl 
+    }]);
+    
+    setNewLinkName(''); setNewLinkUrl('');
+    alert(`Dynamic workspace view registered and mounted into sidebar navigation layout.`);
+  };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f1f5f9' }}>
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} currentUser={currentUser} onLogout={() => setIsAuthenticated(false)} />
-      <main style={{ flex: 1, padding: '32px' }}>
-        {activeTab === 'dashboard' && <Dashboard liveVehicleData={liveVehicleData} currentUser={currentUser} ALL_COLUMNS={ALL_COLUMNS} onRefresh={fetchDataFromSheets} isLoading={isLoading} />}
-        {activeTab === 'googlesheet' && (
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
-            <select value={selectedLinkIndex} onChange={e => setSelectedLinkIndex(parseInt(e.target.value))} style={{ padding: '10px', marginBottom: '12px', maxWidth: '300px' }}>
-              {dynamicLinks.map((link, i) => <option key={i} value={i}>{link.name}</option>)}
-            </select>
-            <iframe src={dynamicLinks[selectedLinkIndex]?.url} style={{ width: '100%', height: '650px', border: 'none', borderRadius: '8px', backgroundColor: '#fff' }} title="Sheet Hub" />
-          </div>
-        )}
-        {activeTab === 'adminpanel' && currentUser.role === 'admin' && (
-          <AdminPanel ALL_COLUMNS={ALL_COLUMNS} users={users} setUsers={setUsers} dynamicLinks={dynamicLinks} setDynamicLinks={setDynamicLinks} />
-        )}
-      </main>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+      <div>
+        <h1 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>Super Admin Security</h1>
+        <p style={{ color: '#64748b', fontSize: '0.85rem' }}>Configure user matrices and external data pipeline links</p>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+        <div style={{ backgroundColor: '#fff', padding: '24px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+          <h3 style={{ margin: '0 0 16px 0' }}>Provision Access Token</h3>
+          <form onSubmit={handleCreateUser} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <input type="text" value={newUserName} onChange={e => setNewUserName(e.target.value)} placeholder="Username" style={{ padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} required />
+            <input type="password" value={newUserPass} onChange={e => setNewUserPass(e.target.value)} placeholder="Password" style={{ padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} required />
+            
+            <div>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', marginBottom: '6px' }}>Column Privileges:</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                {ALL_COLUMNS.map(col => (
+                  <label key={col.id} style={{ fontSize: '0.85rem' }}>
+                    <input type="checkbox" checked={newUserCols.includes(col.id)} onChange={(e) => {
+                      if (e.target.checked) setNewUserCols([...newUserCols, col.id]);
+                      else setNewUserCols(newUserCols.filter(c => c !== col.id));
+                    }} /> {col.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '20px' }}>
+              <label><input type="checkbox" checked={newUserImport} onChange={e => setNewUserImport(e.target.checked)} /> Can Import</label>
+              <label><input type="checkbox" checked={newUserExport} onChange={e => setNewUserExport(e.target.checked)} /> Can Export</label>
+            </div>
+            <button type="submit" style={{ backgroundColor: '#0f172a', color: '#fff', border: 'none', padding: '12px', borderRadius: '6px', cursor: 'pointer' }}>Create User Instance</button>
+          </form>
+        </div>
+
+        <div style={{ backgroundColor: '#fff', padding: '24px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+          <h3 style={{ margin: '0 0 16px 0' }}>Mount External Layouts</h3>
+          <form onSubmit={handleAddLink} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <input type="text" value={newLinkName} onChange={e => setNewLinkName(e.target.value)} placeholder="View Name (e.g., Sub-Sheet View)" style={{ padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} required />
+            <input type="url" value={newLinkUrl} onChange={e => setNewLinkUrl(e.target.value)} placeholder="Google Sheets Embed URL Link" style={{ padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} required />
+            <button type="submit" style={{ backgroundColor: '#0284c7', color: '#fff', border: 'none', padding: '12px', borderRadius: '6px', cursor: 'pointer' }}>Mount Live Link</button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
