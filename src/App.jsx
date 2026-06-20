@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbwNIO5hWPBBPriE0GcyHiOFEorI6fXgRZDEChhsHddFBEq5azLu6bjhv-wERedNIzXRpw/exec";
 
 // ⚠️ PASTE YOUR EMBED LINKS HERE BELOW:
-const LOOKER_STUDIO_EMBED_URL = "https://datastudio.google.com/reporting/7ff3b415-fc99-4a21-b8f4-0b78af9e2f09/page/p_q1fopqmr4d";
+const LOOKER_STUDIO_EMBED_URL = "https://datastudio.google.com/reporting/7ff3b415-fc99-4a21-b8f4-0b78af9e2f09";
 const GOOGLE_SHEETS_EMBED_URL = "https://docs.google.com/spreadsheets/d/14df7O7yZp5dBXaNKucWAXuDAB7YWwyIr6n2_e5s5Jzg/edit?usp=sharing";
 
 export default function App() {
