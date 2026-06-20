@@ -141,7 +141,14 @@ export default function App() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f1f5f9', fontFamily: 'sans-serif' }}>
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} currentUser={currentUser} dynamicLinks={dynamicLinks} onLogout={() => setIsAuthenticated(false)} />
+      // Ensure that inside your App.jsx, the Sidebar call matches this structure:
+<Sidebar 
+  activeTab={activeTab} 
+  setActiveTab={setActiveTab} 
+  currentUser={currentUser} 
+  dynamicLinks={dynamicLinks} 
+  onLogout={() => setIsAuthenticated(false)} 
+/>
       <main style={{ flex: 1, padding: '32px', overflowX: 'hidden' }}>
         {activeTab === 'dashboard' && (
           <Dashboard liveVehicleData={liveVehicleData} currentUser={currentUser} ALL_COLUMNS={ALL_COLUMNS} onRefresh={fetchDataFromSheets} isLoading={isLoading} apiEndpoint={GOOGLE_SHEETS_API_URL} />
