@@ -141,8 +141,7 @@ export default function App() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f1f5f9', fontFamily: 'sans-serif' }}>
-      // Ensure that inside your App.jsx, the Sidebar call matches this structure:
-<Sidebar 
+      <Sidebar 
   activeTab={activeTab} 
   setActiveTab={setActiveTab} 
   currentUser={currentUser} 
