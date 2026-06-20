@@ -1,0 +1,119 @@
+git add src/App.jsx
+git commit -m "feat: add interactive trip entry form and dynamic state management"
+git push origin main
+
+
+
+
+noteS ediditng Microsoft Windows [Version 10.0.26200.8655]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\Dell>cd fleet-dashboard
+
+C:\Users\Dell\fleet-dashboard>git init
+Initialized empty Git repository in C:/Users/Dell/fleet-dashboard/.git/
+
+C:\Users\Dell\fleet-dashboard>git add .
+warning: in the working copy of '.gitignore', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'eslint.config.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'index.html', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'package-lock.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'package.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'public/icons.svg', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/App.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/App.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/assets/vite.svg', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/index.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/main.jsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'vite.config.js', LF will be replaced by CRLF the next time Git touches it
+
+C:\Users\Dell\fleet-dashboard>git commit -m "feat: structured dashboard built with module codes and working dynamic date range filter"git remote add origin https://github.com/Viagologstics/automatic-potato.git
+error: pathspec 'remote' did not match any file(s) known to git
+error: pathspec 'add' did not match any file(s) known to git
+error: pathspec 'origin' did not match any file(s) known to git
+error: pathspec 'https://github.com/Viagologstics/automatic-potato.git' did not match any file(s) known to git
+
+C:\Users\Dell\fleet-dashboard>git branch -M main
+
+C:\Users\Dell\fleet-dashboard>git push -u origin main
+error: src refspec main does not match any
+error: failed to push some refs to 'origin'
+
+C:\Users\Dell\fleet-dashboard>git commit -m "feat: structured dashboard built with module codes and working dynamic date range filter"
+Author identity unknown
+
+*** Please tell me who you are.
+
+Run
+
+  git config --global user.email "you@example.com"
+  git config --global user.name "Your Name"
+
+to set your account's default identity.
+Omit --global to set the identity only in this repository.
+
+fatal: unable to auto-detect email address (got 'Dell@DESKTOP-UONR0GI.(none)')
+
+C:\Users\Dell\fleet-dashboard>git config --global user.email "admin@viagologistics.com"
+
+C:\Users\Dell\fleet-dashboard>git config --global user.name "Viagologstics"
+
+C:\Users\Dell\fleet-dashboard>git commit -m "feat: structured dashboard built with module codes and working dynamic date range filter"
+[main (root-commit) e206c46] feat: structured dashboard built with module codes and working dynamic date range filter
+ 16 files changed, 3152 insertions(+)
+ create mode 100644 .gitignore
+ create mode 100644 README.md
+ create mode 100644 eslint.config.js
+ create mode 100644 index.html
+ create mode 100644 package-lock.json
+ create mode 100644 package.json
+ create mode 100644 public/favicon.svg
+ create mode 100644 public/icons.svg
+ create mode 100644 src/App.css
+ create mode 100644 src/App.jsx
+ create mode 100644 src/assets/hero.png
+ create mode 100644 src/assets/react.svg
+ create mode 100644 src/assets/vite.svg
+ create mode 100644 src/index.css
+ create mode 100644 src/main.jsx
+ create mode 100644 vite.config.js
+
+C:\Users\Dell\fleet-dashboard>git push -u origin main
+fatal: 'origin' does not appear to be a git repository
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+
+C:\Users\Dell\fleet-dashboard>git remote add origin https://github.com/Viagologstics/automatic-potato.git
+
+C:\Users\Dell\fleet-dashboard>git push -u origin main
+Enumerating objects: 21, done.
+Counting objects: 100% (21/21), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (21/21), done.
+Writing objects: 100% (21/21), 46.47 KiB | 1.86 MiB/s, done.
+Total 21 (delta 1), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (1/1), done.
+To https://github.com/Viagologstics/automatic-potato.git
+ * [new branch]      main -> main
+branch 'main' set up to track 'origin/main'.
+
+C:\Users\Dell\fleet-dashboard>git add src/App.jsx
+warning: in the working copy of 'src/App.jsx', LF will be replaced by CRLF the next time Git touches it
+
+C:\Users\Dell\fleet-dashboard>git commit -m "feat: add interactive trip entry form and dynamic state management"
+[main 0228b0a] feat: add interactive trip entry form and dynamic state management
+ 1 file changed, 105 insertions(+), 73 deletions(-)
+
+C:\Users\Dell\fleet-dashboard>git push origin main
+Enumerating objects: 7, done.
+Counting objects: 100% (7/7), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (4/4), 2.46 KiB | 2.46 MiB/s, done.
+Total 4 (delta 3), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (3/3), completed with 3 local objects.
+To https://github.com/Viagologstics/automatic-potato.git
+   e206c46..0228b0a  main -> main
