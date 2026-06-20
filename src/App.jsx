@@ -174,7 +174,7 @@ export default function App() {
       {(!isSheetFullScreen || activeTab !== 'googlesheet') && (
         <aside style={{ width: '260px', backgroundColor: '#0f172a', color: '#fff', padding: '24px 16px', display: 'flex', flexDirection: 'column' }}>
           <div>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#38bdf8', marginBottom: '4px' }}>Viago Central</h2>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#38bdf8', marginBottom: '4px' }}>Viago Express</h2>
             <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 32px 0' }}>Connected Infrastructure Node</p>
             
             <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
