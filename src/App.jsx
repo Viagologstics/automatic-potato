@@ -1,305 +1,257 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-// ==========================================
-// [CODE: A1] INITIAL SEED DATA
-// ==========================================
-const INITIAL_VEHICLE_RAW_DATA = [
-  { date: '2026-06-15', type: '20ftAdhoc', id: 'KA03AE 8109', customer: 'ABLE COLD CHAIN LOGISTICS', trips: 1, revenue: 4000, cost: 2311, emi: 0, received: 0, pending: 4000, kms: 75 },
-  { date: '2026-06-19', type: '20ftAdhoc', id: 'KA03AE 8109', customer: 'ABLE COLD CHAIN LOGISTICS', trips: 1, revenue: 4000, cost: 2312, emi: 0, received: 0, pending: 4000, kms: 75 },
-  { date: '2026-06-05', type: '20ftAdhoc', id: 'KA03AF 2710', customer: 'BLACKBUCK', trips: 3, revenue: 36250, cost: 33888, emi: 0, received: 0, pending: 36250, kms: 1350 },
-  { date: '2026-06-10', type: '32ftAdhoc', id: 'KA52C 7717', customer: 'BLACKBUCK', trips: 6, revenue: 191070, cost: 215846, emi: 50250, received: 148970, pending: 42100, kms: 5083 },
-  { date: '2026-06-12', type: '32ftAdhoc', id: 'KA52C 7719', customer: 'NIPPON EXPRESS', trips: 3, revenue: 129500, cost: 152996, emi: 50250, received: 65900, pending: 63600, kms: 3900 },
-  { date: '2026-06-14', type: 'ReeferAdhoc', id: 'KA52C 7856', customer: 'FREIGHT TIGER', trips: 16, revenue: 64302, cost: 64215, emi: 27750, received: 14500, pending: 49802, kms: 1473 },
-  { date: '2026-05-02', type: '20ftAdhoc', id: 'KA03AF 2710', customer: 'BLACKBUCK', trips: 10, revenue: 121340, cost: 116309, emi: 0, received: 38340, pending: 83000, kms: 3675 },
-  { date: '2026-05-15', type: '32ftAdhoc', id: 'KA52C 7717', customer: 'BLACKBUCK', trips: 5, revenue: 140300, cost: 189006, emi: 67000, received: 122275, pending: 18025, kms: 3417 },
-  { date: '2026-05-18', type: '32ftAdhoc', id: 'KA52C 7719', customer: 'NIPPON EXPRESS', trips: 11, revenue: 242700, cost: 285701, emi: 67000, received: 226474, pending: 16226, kms: 6496 },
-  { date: '2026-05-20', type: 'ReeferAdhoc', id: 'KA52C 7856', customer: 'FREIGHT TIGER', trips: 8, revenue: 32000, cost: 28062, emi: 9250, received: 0, pending: 32000, kms: 597 },
-];
+// ⚠️ PASTE YOUR COPIED GOOGLE APPS SCRIPT URL HERE
+const GOOGLE_SHEETS_API_URL = "YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
 
 export default function App() {
-  // ==========================================
-  // [CODE: A2] APP STATE MANAGER
-  // ==========================================
   const [activePage, setActivePage] = useState('vehicles'); 
-  const [timePeriod, setTimePeriod] = useState('current');  
-  const [startDate, setStartDate] = useState('2026-06-01');
-  const [endDate, setEndDate] = useState('2026-06-30');
+  const [timePeriod, setTimePeriod] = useState('overall');  
+  const [startDate, setStartDate] = useState('2026-05-01');
+  const [endDate, setEndDate] = useState('2026-05-31');
   const [showForm, setShowForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [liveVehicleData, setLiveVehicleData] = useState([]);
 
-  // Live Mutable Database State
-  const [liveVehicleData, setLiveVehicleData] = useState(INITIAL_VEHICLE_RAW_DATA);
-
-  // [CODE: A2.1] Interactive Form State Hook
+  // Form State matching your sheet's explicit Column names
   const [formData, setFormData] = useState({
-    date: '2026-06-20', type: '20ftAdhoc', id: '', customer: 'ABLE COLD CHAIN LOGISTICS',
-    trips: 1, revenue: 0, cost: 0, emi: 0, received: 0, pending: 0, kms: 0
+    "Date": '2026-05-01', "Vehicle No.": '', "Type Of Truck": '17ft Canter', 
+    "Consignor Name": 'NIPPON DEDICATED VEHICLES', "Unlaoding Date": '2026-05-31', 
+    "Trip Status": 'DEDICATED', "Transportation Charges": 0, "Halting Charges": 0,
+    "Payment Received": 0, "Opening kms": 0, "Closing kms": 0, "Contract Kms": 3000, 
+    "Extra KM Cost": 20, "Fixed Vehicle Charges": 107000, "Cost": 0, "EMI": 0, 
+    "Parking cost": 0, "Fastag-Toll": 0, "Others": 0, "Customer Email": ''
   });
 
-  // ==========================================
-  // [CODE: A3] GENERAL UTILITY FUNCTIONS
-  // ==========================================
-  const formatCurrency = (val) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(val);
+  useEffect(() => {
+    fetchDataFromSheets();
+  }, []);
 
-  // ==========================================
-  // [CODE: B1] LIVE FILTERS & DATE BOUNDARIES
-  // ==========================================
-  const getFilteredTrips = () => {
-    let start = startDate;
-    let end = endDate;
+  const fetchDataFromSheets = () => {
+    setIsLoading(true);
+    fetch(GOOGLE_SHEETS_API_URL)
+      .then(res => res.json())
+      .then(data => {
+        // Safe mapping that mirrors your sheet formulas
+        const parsed = data.map(item => {
+          const rawDate = item["Date"] || '';
+          const isDedicated = String(item["Trip Status"]).toUpperCase() === 'DEDICATED';
 
-    if (timePeriod === 'current') {
-      start = '2026-06-01'; end = '2026-06-30';
-    } else if (timePeriod === 'previous') {
-      start = '2026-05-01'; end = '2026-05-31';
-    } else if (timePeriod === 'overall') {
-      start = '2026-05-01'; end = '2026-06-26';
-    }
-    return liveVehicleData.filter(trip => trip.date >= start && trip.date <= end);
+          // Kms calculation: = Closing kms - Opening kms
+          const openKms = parseFloat(String(item["Opening kms"] || '0').replace(/,/g, '')) || 0;
+          const closeKms = parseFloat(String(item["Closing kms"] || '0').replace(/,/g, '')) || 0;
+          const kmsRun = closeKms > openKms ? (closeKms - openKms) : (parseFloat(String(item["Kms"] || '0').replace(/,/g, '')) || 0);
+
+          // Billing logic matching your columns M and BK (Final Billing)
+          let revenue = 0;
+          if (isDedicated) {
+            // Dedicated formula logic from your sample columns
+            const contractKms = parseFloat(String(item["Contract Kms"] || '0').replace(/,/g, '')) || 0;
+            const extraKmRate = parseFloat(String(item["Extra KM Cost"] || '0').replace(/,/g, '')) || 0;
+            const extraKms = kmsRun > contractKms ? (kmsRun - contractKms) : 0;
+            const extraKmCharges = extraKms * extraKmRate;
+            const fixedCharges = parseFloat(String(item["Fixed Vehicle Charges"] || '0').replace(/,/g, '')) || 0;
+            
+            const parking = parseFloat(String(item["Parking cost"] || '0').replace(/,/g, '')) || 0;
+            const toll = parseFloat(String(item["Fastag-Toll"] || '0').replace(/,/g, '')) || 0;
+            const others = parseFloat(String(item["Others"] || '0').replace(/,/g, '')) || 0;
+
+            revenue = parseFloat(String(item["Final Billing Per Vehicle"] || '0').replace(/,/g, '')) || 
+                      (fixedCharges + extraKmCharges + parking + toll + others);
+          } else {
+            // Ad-hoc formula logic: = Transportation Charges + Halting Charges
+            const transCharges = parseFloat(String(item["Transportation Charges"] || '0').replace(/,/g, '')) || 0;
+            const haltCharges = parseFloat(String(item["Halting Charges"] || '0').replace(/,/g, '')) || 0;
+            revenue = parseFloat(String(item["Total"] || '0').replace(/,/g, '')) || (transCharges + haltCharges);
+          }
+
+          const cost = parseFloat(String(item["Cost"] || '0').replace(/,/g, '')) || 0;
+          const emi = parseFloat(String(item["EMI"] || '0').replace(/,/g, '')) || 0;
+          const received = parseFloat(String(item["Payment Received"] || '0').replace(/,/g, '')) || 0;
+
+          return {
+            ...item,
+            cleanDate: rawDate,
+            vehicleNo: item["Vehicle No."] || 'UNKNOWN',
+            truckType: item["Type Of Truck"] || 'Other',
+            customer: item["Consignor Name"] || 'NIPPON DEDICATED',
+            status: item["Trip Status"] || 'COMPLETE',
+            kms: kmsRun,
+            revenue,
+            cost,
+            emi,
+            received,
+            pending: revenue - received
+          };
+        }).filter(item => item.vehicleNo !== 'UNKNOWN');
+
+        setLiveVehicleData(parsed);
+        setIsLoading(false);
+      })
+      .catch(err => {
+        console.error("Sheet parsing sync issue:", err);
+        setIsLoading(false);
+      });
   };
 
-  const filteredTrips = getFilteredTrips();
+  const formatCurrency = (val) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(val || 0);
 
-  // ==========================================
-  // [CODE: B2] CALCULATIONS: VEHICLE GROUPING
-  // ==========================================
+  // Time Window Filtering Logic
+  const filteredTrips = liveVehicleData.filter(trip => {
+    if (timePeriod === 'overall') return true;
+    return trip.cleanDate >= startDate && trip.cleanDate <= endDate;
+  });
+
+  // Consolidate data view values dynamically matching your Dashboard View rules
   const vehicleMap = {};
   filteredTrips.forEach(trip => {
-    if (!vehicleMap[trip.id]) {
-      vehicleMap[trip.id] = { ...trip, trips: 0, revenue: 0, cost: 0, emi: 0, received: 0, pending: 0, kms: 0 };
+    if (!vehicleMap[trip.vehicleNo]) {
+      vehicleMap[trip.vehicleNo] = { id: trip.vehicleNo, type: trip.truckType, customer: trip.customer, status: trip.status, kms: 0, revenue: 0, cost: 0, emi: 0, received: 0, pending: 0, tripsCount: 0 };
     }
-    vehicleMap[trip.id].trips += Number(trip.trips);
-    vehicleMap[trip.id].revenue += Number(trip.revenue);
-    vehicleMap[trip.id].cost += Number(trip.cost);
-    vehicleMap[trip.id].emi += Number(trip.emi);
-    vehicleMap[trip.id].received += Number(trip.received);
-    vehicleMap[trip.id].pending += Number(trip.pending);
-    vehicleMap[trip.id].kms += Number(trip.kms);
+    vehicleMap[trip.vehicleNo].kms += trip.kms;
+    vehicleMap[trip.vehicleNo].revenue += trip.revenue;
+    vehicleMap[trip.vehicleNo].cost += trip.cost;
+    vehicleMap[trip.vehicleNo].emi += trip.emi;
+    vehicleMap[trip.vehicleNo].received += trip.received;
+    vehicleMap[trip.vehicleNo].pending += trip.pending;
+    vehicleMap[trip.vehicleNo].tripsCount += 1;
   });
-  const consolidatedVehicleRows = Object.values(vehicleMap);
+  const consolidatedRows = Object.values(vehicleMap);
 
-  // ==========================================
-  // [CODE: B2.1] CALCULATIONS: CUSTOMER GROUPING
-  // ==========================================
-  const customerMap = {};
-  filteredTrips.forEach(trip => {
-    const cName = trip.customer || 'UNKNOWN CUSTOMER';
-    if (!customerMap[cName]) {
-      customerMap[cName] = { name: cName, trips: 0, revenue: 0, cost: 0, emi: 0, received: 0, pending: 0 };
-    }
-    customerMap[cName].trips += Number(trip.trips);
-    customerMap[cName].revenue += Number(trip.revenue);
-    customerMap[cName].cost += Number(trip.cost);
-    customerMap[cName].emi += Number(trip.emi);
-    customerMap[cName].received += Number(trip.received);
-    customerMap[cName].pending += Number(trip.pending);
-  });
-  const consolidatedCustomerRows = Object.values(customerMap);
-
-  // ==========================================
-  // [CODE: B3] GRAND TOTAL METRICS
-  // ==========================================
-  const vehicleTotals = consolidatedVehicleRows.reduce((acc, row) => {
-    acc.trips += row.trips; acc.revenue += row.revenue; acc.cost += row.cost;
-    acc.emi += row.emi; acc.received += row.received; acc.pending += row.pending; acc.kms += row.kms;
+  // Grand System Summary Row Accumulator
+  const summaryTotals = consolidatedRows.reduce((acc, curr) => {
+    acc.kms += curr.kms; acc.revenue += curr.revenue; acc.cost += curr.cost; acc.emi += curr.emi; acc.received += curr.received; acc.pending += curr.pending; acc.trips += curr.tripsCount;
     return acc;
-  }, { trips: 0, revenue: 0, cost: 0, emi: 0, received: 0, pending: 0, kms: 0 });
+  }, { kms: 0, revenue: 0, cost: 0, emi: 0, received: 0, pending: 0, trips: 0 });
 
-  const customerTotals = consolidatedCustomerRows.reduce((acc, row) => {
-    acc.trips += row.trips; acc.revenue += row.revenue; acc.cost += row.cost;
-    acc.emi += row.emi; acc.received += row.received; acc.pending += row.pending;
-    return acc;
-  }, { trips: 0, revenue: 0, cost: 0, emi: 0, received: 0, pending: 0 });
-
-  // ==========================================
-  // [CODE: E1] EVENT HANDLER: LOG NEW TRIP
-  // ==========================================
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    if (!formData.id.trim()) return alert("Please enter a valid Vehicle Number.");
+    if (!formData["Vehicle No."].trim()) return alert("Vehicle No. cannot be left blank.");
     
-    // Auto calculate pending balance on submission
-    const calculatedPending = Number(formData.revenue) - Number(formData.received);
-    const newTrip = { ...formData, pending: calculatedPending };
-    
-    setLiveVehicleData([newTrip, ...liveVehicleData]);
-    setShowForm(false);
-    // Reset form field entries
-    setFormData({ date: '2026-06-20', type: '20ftAdhoc', id: '', customer: 'ABLE COLD CHAIN LOGISTICS', trips: 1, revenue: 0, cost: 0, emi: 0, received: 0, pending: 0, kms: 0 });
+    setIsLoading(true);
+    fetch(GOOGLE_SHEETS_API_URL, {
+      method: "POST",
+      redirect: "follow",
+      body: JSON.stringify(formData)
+    })
+    .then(() => {
+      fetchDataFromSheets();
+      setShowForm(false);
+    })
+    .catch(() => {
+      alert("Error committing manual ledger row.");
+      setIsLoading(false);
+    });
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'Segoe UI, sans-serif', backgroundColor: '#f1f5f9' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'Segoe UI, system-ui, sans-serif', backgroundColor: '#f1f5f9' }}>
       
-      {/* [CODE: C1] SIDEBAR NAVIGATION */}
-      <aside style={{ width: '260px', backgroundColor: '#0f172a', color: '#fff', padding: '24px 16px' }}>
-        <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '32px', color: '#38bdf8' }}>Viago Express</h2>
+      {/* SYSTEM NAVIGATION PANES */}
+      <aside style={{ width: '265px', backgroundColor: '#0f172a', color: '#fff', padding: '24px 16px' }}>
+        <h2 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#38bdf8', marginBottom: '32px', tracking: '0.05em' }}>Viago Central Console</h2>
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <button onClick={() => setActivePage('vehicles')} style={{ padding: '12px 16px', border: 'none', borderRadius: '6px', textAlign: 'left', cursor: 'pointer', fontSize: '0.95rem', backgroundColor: activePage === 'vehicles' ? '#1e293b' : 'transparent', color: activePage === 'vehicles' ? '#38bdf8' : '#94a3b8', fontWeight: activePage === 'vehicles' ? 'bold' : 'normal' }}>🚚 Adhoc Vehicles Summary</button>
-          <button onClick={() => setActivePage('customers')} style={{ padding: '12px 16px', border: 'none', borderRadius: '6px', textAlign: 'left', cursor: 'pointer', fontSize: '0.95rem', backgroundColor: activePage === 'customers' ? '#1e293b' : 'transparent', color: activePage === 'customers' ? '#38bdf8' : '#94a3b8', fontWeight: activePage === 'customers' ? 'bold' : 'normal' }}>👥 Customer Ad-hoc Summary</button>
+          <button onClick={() => setActivePage('vehicles')} style={{ padding: '12px 16px', border: 'none', borderRadius: '6px', textAlign: 'left', cursor: 'pointer', backgroundColor: '#1e293b', color: '#38bdf8', fontWeight: '700' }}>📊 Live Metrics Dashboard</button>
         </nav>
       </aside>
 
-      {/* MAIN LAYOUT BOX */}
+      {/* CORE FRAME LAYOUT */}
       <main style={{ flex: 1, padding: '32px' }}>
-        
-        {/* [CODE: C2] MAIN HEADER */}
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 'bold', color: '#1e293b', margin: 0 }}>
-              {activePage === 'vehicles' ? 'Ad-hoc Vehicles Performance' : 'Customer Ad-hoc Performance Overview'}
-            </h1>
-            <p style={{ color: '#64748b', marginTop: '4px', fontSize: '0.9rem' }}>
-              Timeline View: {timePeriod === 'custom' ? `${startDate} to ${endDate}` : `${timePeriod.toUpperCase()} PRESET`}
-            </p>
+            <h1 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>Operational Fleet Ledger</h1>
+            <p style={{ color: '#64748b', fontSize: '0.85rem', marginTop: '4px' }}>Compiling live formula tracks from primary spreadsheet database</p>
           </div>
-          <button onClick={() => setShowForm(!showForm)} style={{ backgroundColor: '#0284c7', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
-            {showForm ? '✖ Close Form' : '➕ Add New Trip Entry'}
+          <button onClick={() => setShowForm(!showForm)} style={{ backgroundColor: '#0284c7', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: '6px', fontWeight: '600', cursor: 'pointer' }}>
+            {showForm ? '✖ Close Input Console' : '➕ Append Raw Matrix Entry'}
           </button>
         </header>
 
-        {/* [CODE: D3] LIVE TRIP LOGGER FORM EXPANSION */}
+        {isLoading && (
+          <div style={{ padding: '12px', backgroundColor: '#e0f2fe', color: '#0369a1', borderRadius: '6px', fontWeight: '700', marginBottom: '16px', textAlign: 'center' }}>
+            🔄 Recalculating sheet formulas and matrix dependencies...
+          </div>
+        )}
+
+        {/* DATA SUBMISSION COMPONENT */}
         {showForm && (
-          <form onSubmit={handleFormSubmit} style={{ backgroundColor: '#fff', padding: '24px', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', marginBottom: '24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-            <div><label style={{ display: 'block', fontSize: '0.85rem', color: '#475569', marginBottom: '4px' }}>Date</label><input type="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}/></div>
-            <div><label style={{ display: 'block', fontSize: '0.85rem', color: '#475569', marginBottom: '4px' }}>Vehicle Type</label><select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}><option>20ftAdhoc</option><option>32ftAdhoc</option><option>ReeferAdhoc</option></select></div>
-            <div><label style={{ display: 'block', fontSize: '0.85rem', color: '#475569', marginBottom: '4px' }}>Vehicle No.</label><input type="text" placeholder="e.g. KA03AE 8109" value={formData.id} onChange={e => setFormData({...formData, id: e.target.value.toUpperCase()})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}/></div>
-            <div><label style={{ display: 'block', fontSize: '0.85rem', color: '#475569', marginBottom: '4px' }}>Customer Name</label><select value={formData.customer} onChange={e => setFormData({...formData, customer: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}><option>ABLE COLD CHAIN LOGISTICS</option><option>BLACKBUCK</option><option>NIPPON EXPRESS</option><option>FREIGHT TIGER</option><option>Moglix</option></select></div>
-            <div><label style={{ display: 'block', fontSize: '0.85rem', color: '#475569', marginBottom: '4px' }}>Revenue (₹)</label><input type="number" value={formData.revenue} onChange={e => setFormData({...formData, revenue: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}/></div>
-            <div><label style={{ display: 'block', fontSize: '0.85rem', color: '#475569', marginBottom: '4px' }}>Cost (₹)</label><input type="number" value={formData.cost} onChange={e => setFormData({...formData, cost: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}/></div>
-            <div><label style={{ display: 'block', fontSize: '0.85rem', color: '#475569', marginBottom: '4px' }}>EMI Allocation (₹)</label><input type="number" value={formData.emi} onChange={e => setFormData({...formData, emi: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}/></div>
-            <div><label style={{ display: 'block', fontSize: '0.85rem', color: '#475569', marginBottom: '4px' }}>Payment Received (₹)</label><input type="number" value={formData.received} onChange={e => setFormData({...formData, received: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}/></div>
-            <div><label style={{ display: 'block', fontSize: '0.85rem', color: '#475569', marginBottom: '4px' }}>Kms Traveled</label><input type="number" value={formData.kms} onChange={e => setFormData({...formData, kms: e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}/></div>
-            <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end' }}><button type="submit" style={{ backgroundColor: '#16a34a', color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>Save Record Entry</button></div>
+          <form onSubmit={handleFormSubmit} style={{ backgroundColor: '#fff', padding: '24px', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', marginBottom: '24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+            <div><label style={{ fontSize: '0.8rem', fontWeight: '700', color: '#475569' }}>Date (DD/MM/YYYY)</label><input type="text" placeholder="01/05/2026" value={formData["Date"]} onChange={e => setFormData({...formData, "Date": e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}/></div>
+            <div><label style={{ fontSize: '0.8rem', fontWeight: '700', color: '#475569' }}>Vehicle No.</label><input type="text" placeholder="KA01AL 7384" value={formData["Vehicle No."]} onChange={e => setFormData({...formData, "Vehicle No.": e.target.value.toUpperCase()})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}/></div>
+            <div><label style={{ fontSize: '0.8rem', fontWeight: '700', color: '#475569' }}>Type Of Truck</label><input type="text" value={formData["Type Of Truck"]} onChange={e => setFormData({...formData, "Type Of Truck": e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}/></div>
+            <div><label style={{ fontSize: '0.8rem', fontWeight: '700', color: '#475569' }}>Consignor Name</label><input type="text" value={formData["Consignor Name"]} onChange={e => setFormData({...formData, "Consignor Name": e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}/></div>
+            <div><label style={{ fontSize: '0.8rem', fontWeight: '700', color: '#475569' }}>Contract Type</label><select value={formData["Trip Status"]} onChange={e => setFormData({...formData, "Trip Status": e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}><option>DEDICATED</option><option>COMPLETE</option></select></div>
+            <div><label style={{ fontSize: '0.8rem', fontWeight: '700', color: '#475569' }}>Opening kms</label><input type="number" value={formData["Opening kms"]} onChange={e => setFormData({...formData, "Opening kms": e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}/></div>
+            <div><label style={{ fontSize: '0.8rem', fontWeight: '700', color: '#475569' }}>Closing kms</label><input type="number" value={formData["Closing kms"]} onChange={e => setFormData({...formData, "Closing kms": e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}/></div>
+            <div><label style={{ fontSize: '0.8rem', fontWeight: '700', color: '#475569' }}>Fixed Vehicle Charges</label><input type="number" value={formData["Fixed Vehicle Charges"]} onChange={e => setFormData({...formData, "Fixed Vehicle Charges": e.target.value})} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #cbd5e1' }}/></div>
+            <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end' }}><button type="submit" style={{ backgroundColor: '#16a34a', color: '#fff', padding: '10px 24px', border: 'none', borderRadius: '4px', fontWeight: '700', cursor: 'pointer' }}>Commit Entry Row</button></div>
           </form>
         )}
 
-        {/* [CODE: C3] UI PRESENTATION: FILTER CONTROLS */}
-        <div style={{ display: 'flex', gap: '16px', backgroundColor: '#fff', padding: '16px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', marginBottom: '24px', alignItems: 'center' }}>
-          <div style={{ display: 'flex', gap: '4px', backgroundColor: '#f1f5f9', padding: '4px', borderRadius: '6px' }}>
-            {['current', 'previous', 'overall', 'custom'].map((p) => (
-              <button key={p} onClick={() => setTimePeriod(p)} style={{ padding: '8px 16px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '500', backgroundColor: timePeriod === p ? '#fff' : 'transparent', color: timePeriod === p ? '#0f172a' : '#64748b' }}>
-                {p === 'current' ? 'Current Month' : p === 'previous' ? 'Previous Month' : p === 'overall' ? 'Overall' : 'Custom Range'}
-              </button>
-            ))}
-          </div>
-
+        {/* TIME CONFIG PANEL */}
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', alignItems: 'center' }}>
+          <select value={timePeriod} onChange={e => setTimePeriod(e.target.value)} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: '500', color: '#334155' }}>
+            <option value="overall">All Synced Records Ledger View</option>
+            <option value="custom">Isolate Timeline Window</option>
+          </select>
           {timePeriod === 'custom' && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: '4px' }} />
+              <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1' }}/>
               <span style={{ color: '#64748b' }}>to</span>
-              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: '4px' }} />
+              <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1' }}/>
             </div>
           )}
         </div>
 
-        {/* [CODE: D1] VIEW PANEL: VEHICLES TABLE */}
-        {activePage === 'vehicles' && (
-          <div style={{ backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.925rem' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#0f172a', color: '#fff' }}>
-                  <th style={{ padding: '14px 16px' }}>Vehicle Type</th>
-                  <th style={{ padding: '14px 16px' }}>Vehicle No.</th>
-                  <th style={{ padding: '14px 16px' }}>Trip Count</th>
-                  <th style={{ padding: '14px 16px' }}>Revenue</th>
-                  <th style={{ padding: '14px 16px' }}>Cost</th>
-                  <th style={{ padding: '14px 16px' }}>EMI</th>
-                  <th style={{ padding: '14px 16px' }}>Net Profit</th>
-                  <th style={{ padding: '14px 16px' }}>Received</th>
-                  <th style={{ padding: '14px 16px' }}>Pending</th>
-                  <th style={{ padding: '14px 16px' }}>Kms</th>
-                </tr>
-              </thead>
-              <tbody>
-                {consolidatedVehicleRows.map((row, index) => {
-                  const netProfit = row.revenue - row.cost - row.emi;
-                  return (
-                    <tr key={index} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                      <td style={{ padding: '14px 16px', color: '#475569' }}>{row.type}</td>
-                      <td style={{ padding: '14px 16px', fontWeight: '600' }}>{row.id}</td>
-                      <td style={{ padding: '14px 16px' }}>{row.trips}</td>
-                      <td style={{ padding: '14px 16px', color: '#16a34a' }}>₹{formatCurrency(row.revenue)}</td>
-                      <td style={{ padding: '14px 16px', color: '#e11d48' }}>₹{formatCurrency(row.cost)}</td>
-                      <td style={{ padding: '14px 16px' }}>₹{formatCurrency(row.emi)}</td>
-                      <td style={{ padding: '14px 16px', fontWeight: '600', color: netProfit >= 0 ? '#16a34a' : '#e11d48' }}>
-                        {netProfit < 0 ? '-' : ''}₹{formatCurrency(Math.abs(netProfit))}
-                      </td>
-                      <td style={{ padding: '14px 16px' }}>₹{formatCurrency(row.received)}</td>
-                      <td style={{ padding: '14px 16px', color: row.pending > 0 ? '#d97706' : '#64748b' }}>₹{formatCurrency(row.pending)}</td>
-                      <td style={{ padding: '14px 16px' }}>{formatCurrency(row.kms)}</td>
-                    </tr>
-                  );
-                })}
-                <tr style={{ backgroundColor: '#f8fafc', fontWeight: 'bold', borderTop: '2px solid #0f172a' }}>
-                  <td colSpan="2" style={{ padding: '16px' }}>Grand Total</td>
-                  <td>{vehicleTotals.trips}</td>
-                  <td style={{ color: '#16a34a' }}>₹{formatCurrency(vehicleTotals.revenue)}</td>
-                  <td style={{ color: '#e11d48' }}>₹{formatCurrency(vehicleTotals.cost)}</td>
-                  <td>₹{formatCurrency(vehicleTotals.emi)}</td>
-                  <td style={{ color: (vehicleTotals.revenue - vehicleTotals.cost - vehicleTotals.emi) >= 0 ? '#16a34a' : '#e11d48' }}>
-                    ₹{formatCurrency(vehicleTotals.revenue - vehicleTotals.cost - vehicleTotals.emi)}
-                  </td>
-                  <td>₹{formatCurrency(vehicleTotals.received)}</td>
-                  <td style={{ color: '#d97706' }}>₹{formatCurrency(vehicleTotals.pending)}</td>
-                  <td>{formatCurrency(vehicleTotals.kms)}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {/* [CODE: D2] VIEW PANEL: CUSTOMERS TABLE */}
-        {activePage === 'customers' && (
-          <div style={{ backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.925rem' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#0f172a', color: '#fff' }}>
-                  <th style={{ padding: '14px 16px' }}>Sl No.</th>
-                  <th style={{ padding: '14px 16px' }}>Customer Name</th>
-                  <th style={{ padding: '14px 16px' }}>Trip Count</th>
-                  <th style={{ padding: '14px 16px' }}>Total Revenue</th>
-                  <th style={{ padding: '14px 16px' }}>Cost</th>
-                  <th style={{ padding: '14px 16px' }}>EMI Allocation</th>
-                  <th style={{ padding: '14px 16px' }}>Net after EMI</th>
-                  <th style={{ padding: '14px 16px' }}>Payment Received</th>
-                  <th style={{ padding: '14px 16px' }}>Payment Pending</th>
-                </tr>
-              </thead>
-              <tbody>
-                {consolidatedCustomerRows.map((row, idx) => {
-                  const netProfit = row.revenue - row.cost - row.emi;
-                  return (
-                    <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                      <td style={{ padding: '14px 16px', color: '#94a3b8' }}>{idx + 1}.</td>
-                      <td style={{ padding: '14px 16px', fontWeight: '600' }}>{row.name}</td>
-                      <td>{row.trips}</td>
-                      <td style={{ color: '#16a34a' }}>₹{formatCurrency(row.revenue)}</td>
-                      <td style={{ color: '#e11d48' }}>₹{formatCurrency(row.cost)}</td>
-                      <td>₹{formatCurrency(row.emi)}</td>
-                      <td style={{ fontWeight: '600', color: netProfit >= 0 ? '#16a34a' : '#e11d48' }}>
-                        {netProfit < 0 ? '-' : ''}₹{formatCurrency(Math.abs(netProfit))}
-                      </td>
-                      <td>₹{formatCurrency(row.received)}</td>
-                      <td style={{ color: row.pending > 0 ? '#d97706' : '#64748b' }}>₹{formatCurrency(row.pending)}</td>
-                    </tr>
-                  );
-                })}
-                <tr style={{ backgroundColor: '#f8fafc', fontWeight: 'bold', borderTop: '2px solid #0f172a' }}>
-                  <td colSpan="2" style={{ padding: '16px' }}>Grand Total</td>
-                  <td>{customerTotals.trips}</td>
-                  <td style={{ color: '#16a34a' }}>₹{formatCurrency(customerTotals.revenue)}</td>
-                  <td style={{ color: '#e11d48' }}>₹{formatCurrency(customerTotals.cost)}</td>
-                  <td>₹{formatCurrency(customerTotals.emi)}</td>
-                  <td style={{ color: (customerTotals.revenue - customerTotals.cost - customerTotals.emi) >= 0 ? '#16a34a' : '#e11d48' }}>
-                    ₹{formatCurrency(customerTotals.revenue - customerTotals.cost - customerTotals.emi)}
-                  </td>
-                  <td>₹{formatCurrency(customerTotals.received)}</td>
-                  <td style={{ color: '#d97706' }}>₹{formatCurrency(customerTotals.pending)}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        )}
+        {/* DYNAMIC METRICS OUTPUT FRAME */}
+        <div style={{ backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#0f172a', color: '#fff' }}>
+                <th style={{ padding: '14px 16px' }}>Vehicle No.</th>
+                <th style={{ padding: '14px 16px' }}>Specification</th>
+                <th style={{ padding: '14px 16px' }}>Contract Status</th>
+                <th style={{ padding: '14px 16px' }}>Total Distance</th>
+                <th style={{ padding: '14px 16px' }}>Calculated Revenue</th>
+                <th style={{ padding: '14px 16px' }}>Operating Cost</th>
+                <th style={{ padding: '14px 16px' }}>EMI Share</th>
+                <th style={{ padding: '14px 16px' }}>Net Earnings</th>
+                <th style={{ padding: '14px 16px' }}>Collected</th>
+                <th style={{ padding: '14px 16px' }}>Outstandings</th>
+              </tr>
+            </thead>
+            <tbody>
+              {consolidatedRows.map((row, index) => {
+                const netProfit = row.revenue - row.cost - row.emi;
+                return (
+                  <tr key={index} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '14px 16px', fontWeight: '700', color: '#0f172a' }}>{row.id}</td>
+                    <td style={{ padding: '14px 16px', color: '#475569' }}>{row.type}</td>
+                    <td style={{ padding: '14px 16px', fontSize: '0.8rem', fontWeight: '600' }}><span style={{ padding: '2px 8px', borderRadius: '12px', backgroundColor: row.status === 'DEDICATED' ? '#f0fdf4' : '#f8fafc', color: row.status === 'DEDICATED' ? '#16a34a' : '#475569' }}>{row.status}</span></td>
+                    <td style={{ padding: '14px 16px' }}>{formatCurrency(row.kms)} km</td>
+                    <td style={{ padding: '14px 16px', fontWeight: '600', color: '#16a34a' }}>₹{formatCurrency(row.revenue)}</td>
+                    <td style={{ padding: '14px 16px', color: '#ef4444' }}>₹{formatCurrency(row.cost)}</td>
+                    <td style={{ padding: '14px 16px', color: '#64748b' }}>₹{formatCurrency(row.emi)}</td>
+                    <td style={{ padding: '14px 16px', fontWeight: '700', color: netProfit >= 0 ? '#16a34a' : '#ef4444' }}>₹{formatCurrency(netProfit)}</td>
+                    <td style={{ padding: '14px 16px' }}>₹{formatCurrency(row.received)}</td>
+                    <td style={{ padding: '14px 16px', fontWeight: '600', color: row.pending > 0 ? '#ea580c' : '#64748b' }}>₹{formatCurrency(row.pending)}</td>
+                  </tr>
+                );
+              })}
+              
+              {/* ACCUMULATED GRAND SYSTEM SUMMARY SUMMARY LINE */}
+              <tr style={{ backgroundColor: '#f8fafc', fontWeight: 'bold', borderTop: '3px solid #0f172a' }}>
+                <td colSpan="3" style={{ padding: '16px' }}>Total System Volume ({summaryTotals.trips} rows)</td>
+                <td>{formatCurrency(summaryTotals.kms)} km</td>
+                <td style={{ color: '#16a34a' }}>₹{formatCurrency(summaryTotals.revenue)}</td>
+                <td style={{ color: '#ef4444' }}>₹{formatCurrency(summaryTotals.cost)}</td>
+                <td style={{ color: '#64748b' }}>₹{formatCurrency(summaryTotals.emi)}</td>
+                <td style={{ color: (summaryTotals.revenue - summaryTotals.cost - summaryTotals.emi) >= 0 ? '#16a34a' : '#ef4444' }}>₹{formatCurrency(summaryTotals.revenue - summaryTotals.cost - summaryTotals.emi)}</td>
+                <td>₹{formatCurrency(summaryTotals.received)}</td>
+                <td style={{ color: '#ea580c' }}>₹{formatCurrency(summaryTotals.pending)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </main>
     </div>
   );
