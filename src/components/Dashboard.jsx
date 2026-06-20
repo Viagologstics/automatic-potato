@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import DataIO from './DataIO';
 
-export default function Dashboard({ liveVehicleData, currentUser, ALL_COLUMNS, onRefresh, isLoading }) {
+export default function Dashboard({ liveVehicleData, currentUser, ALL_COLUMNS, onRefresh, isLoading, apiEndpoint }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [truckTypeFilter, setTruckTypeFilter] = useState('all');
@@ -15,7 +15,7 @@ export default function Dashboard({ liveVehicleData, currentUser, ALL_COLUMNS, o
 
     if (matchedStatus && matchedType && matchedSearch) {
       if (!acc[trip.vehicleNo]) {
-        acc[trip.vehicleNo] = { id: trip.vehicleNo, type: trip.truckType, status: trip.status, kms: 0, revenue: 0, cost: 0, emi: 0, received: 0, pending: 0, count: 0 };
+        acc[trip.vehicleNo] = { id: trip.vehicleNo, type: trip.truckType, status: trip.status, kms: 0, revenue: 0, cost: 0, emi: 0, received: 0, pending: 0 };
       }
       acc[trip.vehicleNo].kms += trip.kms;
       acc[trip.vehicleNo].revenue += trip.revenue;
@@ -23,7 +23,6 @@ export default function Dashboard({ liveVehicleData, currentUser, ALL_COLUMNS, o
       acc[trip.vehicleNo].emi += trip.emi;
       acc[trip.vehicleNo].received += trip.received;
       acc[trip.vehicleNo].pending += trip.pending;
-      acc[trip.vehicleNo].count += 1;
     }
     return acc;
   }, {});
@@ -39,7 +38,7 @@ export default function Dashboard({ liveVehicleData, currentUser, ALL_COLUMNS, o
           <h1 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>Fleet Matrix</h1>
           <p style={{ color: '#64748b', fontSize: '0.85rem' }}>Dynamic access controlled dashboard view</p>
         </div>
-        <DataIO currentUser={currentUser} ALL_COLUMNS={ALL_COLUMNS} consolidatedRows={consolidatedRows} onRefresh={onRefresh} isLoading={isLoading} />
+        <DataIO currentUser={currentUser} ALL_COLUMNS={ALL_COLUMNS} consolidatedRows={consolidatedRows} onRefresh={onRefresh} isLoading={isLoading} apiEndpoint={apiEndpoint} />
       </header>
 
       <div style={{ backgroundColor: '#fff', padding: '16px', borderRadius: '8px', display: 'flex', gap: '16px', marginBottom: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
