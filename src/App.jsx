@@ -77,8 +77,14 @@ export default function App() {
             received,
             pending: revenue - received
           };
-        }).filter(item => item.vehicleNo !== 'UNKNOWN' && item.vehicleNo !== '');
-
+//        }).filter(item => item.vehicleNo !== 'UNKNOWN' && item.vehicleNo !== '');
+          
+}).filter(item => 
+          item.vehicleNo !== 'UNKNOWN' && 
+          item.vehicleNo !== '' && 
+          item.vehicleNo !== 'Vehicle No.' && 
+          !item.vehicleNo.toLowerCase().includes('total')
+        );
         setLiveVehicleData(parsed);
         setIsLoading(false);
       })
