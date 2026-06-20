@@ -2,13 +2,60 @@ import React, { useState } from 'react';
 
 export default function DataIO({ currentUser, ALL_COLUMNS, consolidatedRows, onRefresh, isLoading, apiEndpoint, dynamicLinks = [] }) {
   const [isSyncingDB, setIsSyncingDB] = useState(false);
+  const [isFetchingDump, setIsFetchingDump] = useState(false);
   
-  // Safe fallbacks to prevent crashes if properties are missing
   const safeLinks = dynamicLinks || [];
   const isRestrictedScope = currentUser?.role !== 'admin' && currentUser?.exportScope === 'selective';
   const approvedSheets = safeLinks.filter(link => currentUser?.allowedExportSheets?.includes(link.id));
   
   const [chosenSheetId, setChosenSheetId] = useState(approvedSheets[0]?.id || '');
+
+  // NEW: Button Action 2 - Fetches dump file directly from Web App URL
+  const handleFetchScriptDump = async () => {
+    setIsFetchingDump(true);
+    try {
+      const targetUrl = "https://script.google.com/macros/s/AKfycbwNIO5hWPBBPriE0GcyHiOFEorI6fXgRZDEChhsHddFBEq5azLu6bjhv-wERedNIzXRpw/exec";
+      
+      // Requesting the Google script to return the stored row dump data
+      const response = await fetch(`${targetUrl}?action=fetch_dump&operator=${encodeURIComponent(currentUser?.username || 'unknown')}`);
+      
+      if (!response.ok) throw new Error("Network response was not ok");
+      
+      const data = await response.json();
+      
+      if (!data || !data.rows) {
+        alert("No valid data dump returned from the Apps Script engine.");
+        return;
+      }
+
+      // Convert response rows directly into a downloadable CSV
+      let csvContent = "";
+      if (data.rows.length > 0) {
+        csvContent += Object.keys(data.rows[0]).join(",") + "\n";
+        data.rows.forEach(row => {
+          const line = Object.values(row).map(val => `"${val !== undefined ? val : ''}"`).join(",");
+          csvContent += line + "\n";
+        });
+      } else {
+        csvContent = "No records found";
+      }
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const downloadLink = document.createElement("a");
+      downloadLink.href = URL.createObjectURL(blob);
+      downloadLink.setAttribute("download", `Script_Central_Dump_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+
+      alert("Success: Master script data dump successfully compiled and downloaded.");
+    } catch (err) {
+      console.error(err);
+      alert("Error: Unable to fetch live database dump records from Google Script URL.");
+    } finally {
+      setIsFetchingDump(false);
+    }
+  };
 
   const handleExportDataPipeline = async () => {
     if (!currentUser?.canExport) return alert("Access denied: Export operations locked by admin.");
@@ -39,21 +86,8 @@ export default function DataIO({ currentUser, ALL_COLUMNS, consolidatedRows, onR
     link.click();
     document.body.removeChild(link);
 
-     setIsSyncingDB(true);
+    setIsSyncingDB(true);
     try {
-      const payload = (consolidatedRows || []).map(row => ({
-        vehicleNo: row.id,
-        type: row.type,
-        status: row.status,
-        kms: row.kms,
-        revenue: row.revenue,
-        cost: row.cost,
-        emi: row.emi,
-        received: row.received,
-        pending: row.pending,
-        operatorPassword: currentUser?.password || '' // 👈 Syncs password token right to the Google Sheet script
-      }));
-
       await fetch(apiEndpoint, {
         method: 'POST',
         mode: 'no-cors',
@@ -63,16 +97,9 @@ export default function DataIO({ currentUser, ALL_COLUMNS, consolidatedRows, onR
           operator: currentUser.username, 
           targetScope: isRestrictedScope ? 'selective_sheet' : 'full_dump',
           targetSheetName: isRestrictedScope ? approvedSheets.find(s => s.id === chosenSheetId)?.name : 'All',
-          data: payload // 👈 Sends the updated payload containing the password
+          data: consolidatedRows 
         })
       });
-      alert(`Local export generated. Synchronized copy sent under profile scope: [${activeExportName}].`);
-      onRefresh();
-    } catch (err) {
-      alert("Local CSV generated successfully. Log broadcast encountered a network issue.");
-    } finally {
-      setIsSyncingDB(false);
-    }
       alert(`Local export generated. Synchronized copy sent under profile scope: [${activeExportName}].`);
       onRefresh();
     } catch (err) {
@@ -83,9 +110,8 @@ export default function DataIO({ currentUser, ALL_COLUMNS, consolidatedRows, onR
   };
 
   return (
-    <div style={{ display: 'flex', gap: '12px', alignItems: 'center', backgroundColor: '#f8fafc', padding: '8px 12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+    <div style={{ display: 'flex', gap: '12px', alignItems: 'center', backgroundColor: '#f8fafc', padding: '8px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', flexWrap: 'wrap' }}>
       
-      {/* Target selector dropdown appears only if Admin configured selective sheet constraints */}
       {currentUser?.canExport && isRestrictedScope && approvedSheets.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
           <span style={{ fontSize: '0.7rem', fontWeight: '700', color: '#475569' }}>Target Export Sheet:</span>
@@ -95,10 +121,16 @@ export default function DataIO({ currentUser, ALL_COLUMNS, consolidatedRows, onR
         </div>
       )}
 
-      {/* Button renders if and only if the admin gives explicit access */}
       {currentUser?.canExport && (
         <button onClick={handleExportDataPipeline} disabled={isSyncingDB} style={{ backgroundColor: '#10b981', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '6px', fontWeight: '700', cursor: 'pointer', fontSize: '0.85rem' }}>
           {isSyncingDB ? '📤 Exporting...' : '📤 Export Data'}
+        </button>
+      )}
+
+      {/* NEW: Render download from script dump link button element */}
+      {currentUser?.canExport && (
+        <button onClick={handleFetchScriptDump} disabled={isFetchingDump} style={{ backgroundColor: '#7c3aed', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '6px', fontWeight: '700', cursor: 'pointer', fontSize: '0.85rem' }}>
+          {isFetchingDump ? '📥 Downloading...' : '📥 Fetch Script Dump'}
         </button>
       )}
 
