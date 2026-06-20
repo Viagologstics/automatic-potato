@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 const GOOGLE_SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbwNIO5hWPBBPriE0GcyHiOFEorI6fXgRZDEChhsHddFBEq5azLu6bjhv-wERedNIzXRpw/exec";
 
 // ⚠️ PASTE YOUR EMBED LINKS HERE BELOW:
-//const LOOKER_STUDIO_EMBED_URL = "https://lookerstudio.google.com/embed/reporting/7ff3b415-fc99-4a21-b8f4-0b78af9e2f09/page/p_q1fopqmr4d";
 const GOOGLE_SHEETS_EMBED_URL = "https://docs.google.com/spreadsheets/d/14df7O7yZp5dBXaNKucWAXuDAB7YWwyIr6n2_e5s5Jzg/edit?usp=sharing";
 
 export default function App() {
@@ -15,7 +14,7 @@ export default function App() {
   const [loginError, setLoginError] = useState('');
 
   // Primary Navigation Configuration
-  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'datastudio', 'googlesheet'
+  const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'googlesheet'
   const [timePeriod, setTimePeriod] = useState('overall');  
   const [startDate, setStartDate] = useState('2026-05-01');
   const [endDate, setEndDate] = useState('2026-06-30');
@@ -174,12 +173,11 @@ export default function App() {
       {(!isSheetFullScreen || activeTab !== 'googlesheet') && (
         <aside style={{ width: '260px', backgroundColor: '#0f172a', color: '#fff', padding: '24px 16px', display: 'flex', flexDirection: 'column' }}>
           <div>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#38bdf8', marginBottom: '4px' }}>Viago Express</h2>
+            <h2 style={{ fontSize: '1.2rem', fontWeight: '700', color: '#38bdf8', marginBottom: '4px' }}>Viago Central</h2>
             <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '0 0 32px 0' }}>Connected Infrastructure Node</p>
             
             <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <button onClick={() => setActiveTab('dashboard')} style={{ padding: '12px 16px', border: 'none', borderRadius: '6px', textAlign: 'left', cursor: 'pointer', backgroundColor: activeTab === 'dashboard' ? '#1e293b' : 'transparent', color: activeTab === 'dashboard' ? '#38bdf8' : '#94a3b8', fontWeight: '700', width: '100%' }}>📊 Metrics Matrix</button>
-              <button onClick={() => setActiveTab('datastudio')} style={{ padding: '12px 16px', border: 'none', borderRadius: '6px', textAlign: 'left', cursor: 'pointer', backgroundColor: activeTab === 'datastudio' ? '#1e293b' : 'transparent', color: activeTab === 'datastudio' ? '#38bdf8' : '#94a3b8', fontWeight: '700', width: '100%' }}>📈 Looker Analytics</button>
               <button onClick={() => setActiveTab('googlesheet')} style={{ padding: '12px 16px', border: 'none', borderRadius: '6px', textAlign: 'left', cursor: 'pointer', backgroundColor: activeTab === 'googlesheet' ? '#1e293b' : 'transparent', color: activeTab === 'googlesheet' ? '#38bdf8' : '#94a3b8', fontWeight: '700', width: '100%' }}>📋 Master Spreadsheet</button>
             </nav>
           </div>
@@ -271,16 +269,7 @@ export default function App() {
           </>
         )}
 
-        {/* VIEW TAB 2: DATA STUDIO/LOOKER REPORT PORTAL */}
-        {activeTab === 'datastudio' && (
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <h1 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#0f172a', marginBottom: '4px' }}>Looker Studio Executive Analytics</h1>
-            <p style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '20px' }}>Interactive analytical matrices and historical telemetry visualizations</p>
-            <iframe src={LOOKER_STUDIO_EMBED_URL} style={{ width: '100%', flex: 1, border: 'none', borderRadius: '8px', backgroundColor: '#fff', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }} allowFullScreen title="Looker Studio Frame" />
-          </div>
-        )}
-
-        {/* VIEW TAB 3: LIVE SPREADSHEET LOOKUP MODULE */}
+        {/* VIEW TAB 2: LIVE SPREADSHEET LOOKUP MODULE */}
         {activeTab === 'googlesheet' && (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
             {!isSheetFullScreen && (
