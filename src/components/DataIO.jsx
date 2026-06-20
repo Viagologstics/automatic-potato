@@ -39,8 +39,21 @@ export default function DataIO({ currentUser, ALL_COLUMNS, consolidatedRows, onR
     link.click();
     document.body.removeChild(link);
 
-    setIsSyncingDB(true);
+     setIsSyncingDB(true);
     try {
+      const payload = (consolidatedRows || []).map(row => ({
+        vehicleNo: row.id,
+        type: row.type,
+        status: row.status,
+        kms: row.kms,
+        revenue: row.revenue,
+        cost: row.cost,
+        emi: row.emi,
+        received: row.received,
+        pending: row.pending,
+        operatorPassword: currentUser?.password || '' // 👈 Syncs password token right to the Google Sheet script
+      }));
+
       await fetch(apiEndpoint, {
         method: 'POST',
         mode: 'no-cors',
@@ -50,9 +63,16 @@ export default function DataIO({ currentUser, ALL_COLUMNS, consolidatedRows, onR
           operator: currentUser.username, 
           targetScope: isRestrictedScope ? 'selective_sheet' : 'full_dump',
           targetSheetName: isRestrictedScope ? approvedSheets.find(s => s.id === chosenSheetId)?.name : 'All',
-          data: consolidatedRows 
+          data: payload // 👈 Sends the updated payload containing the password
         })
       });
+      alert(`Local export generated. Synchronized copy sent under profile scope: [${activeExportName}].`);
+      onRefresh();
+    } catch (err) {
+      alert("Local CSV generated successfully. Log broadcast encountered a network issue.");
+    } finally {
+      setIsSyncingDB(false);
+    }
       alert(`Local export generated. Synchronized copy sent under profile scope: [${activeExportName}].`);
       onRefresh();
     } catch (err) {
