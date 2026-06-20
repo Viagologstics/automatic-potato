@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
 
-export default function DataIO({ currentUser, ALL_COLUMNS, consolidatedRows, onRefresh, isLoading, apiEndpoint, dynamicLinks = [] }) {
+export default function DataIO({ 
+  currentUser, 
+  ALL_COLUMNS = [], 
+  consolidatedRows = [], 
+  onRefresh, 
+  isLoading, 
+  apiEndpoint, 
+  dynamicLinks = [] 
+}) {
   const [isSyncingDB, setIsSyncingDB] = useState(false);
   const [isFetchingDump, setIsFetchingDump] = useState(false);
   
