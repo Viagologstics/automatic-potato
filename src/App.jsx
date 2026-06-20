@@ -96,11 +96,39 @@ export default function App() {
   const formatCurrency = (val) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(val || 0);
 
   // Time Window Filtering Logic
+  //const filteredTrips = liveVehicleData.filter(trip => {
+   // if (timePeriod === 'overall') return true;
+  //  return trip.cleanDate >= startDate && trip.cleanDate <= endDate;
+ // });
+// Updated Time Window Filtering Logic
   const filteredTrips = liveVehicleData.filter(trip => {
     if (timePeriod === 'overall') return true;
-    return trip.cleanDate >= startDate && trip.cleanDate <= endDate;
-  });
+    
+    // Normalizes both sheet dates and input dates into comparable numbers
+    const cleanRawDate = String(trip.cleanDate).replace(/[\/-]/g, ''); // converts "01-05-2026" or "01/05/2026" to "01052026"
+    const cleanStart = String(startDate).replace(/[\/-]/g, '');
+    const cleanEnd = String(endDate).replace(/[\/-]/g, '');
 
+    // Rearrange DDMMYYYY string to YYYYMMDD for correct mathematical chronological comparison
+    const targetDateNum = parseInt(cleanRawDate.split('').reverse().join(''), 10); 
+    
+    // If your sheet formats dates natively as YYYY-MM-DD, a fallback helper:
+    const toStandardFormat = (str) => {
+      const parts = str.split(/[\/-]/);
+      if (parts[0].length === 4) return parts.join(''); // YYYYMMDD
+      return parts[2] + parts[1] + parts[0]; // DDMMYYYY -> YYYYMMDD
+    };
+
+    try {
+      const tripScore = parseInt(toStandardFormat(String(trip.cleanDate)), 10);
+      const startScore = parseInt(toStandardFormat(startDate), 10);
+      const endScore = parseInt(toStandardFormat(endDate), 10);
+      return tripScore >= startScore && tripScore <= endScore;
+    } catch(e) {
+      return true; // Fallback to show row if date parsing acts up
+    }
+  });
+  
   // Consolidate data view values dynamically matching your Dashboard View rules
   const vehicleMap = {};
   filteredTrips.forEach(trip => {
