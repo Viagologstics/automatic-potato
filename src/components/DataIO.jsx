@@ -1,18 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-export default function DataIO({ currentUser, ALL_COLUMNS, consolidatedRows, onRefresh, isLoading }) {
-  const formatCurrency = (val) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(val || 0);
+export default function DataIO({ currentUser, ALL_COLUMNS, consolidatedRows, onRefresh, isLoading, apiEndpoint }) {
+  const [isSyncingDB, setIsSyncingDB] = useState(false);
 
-  const handleExportCSV = () => {
+  const handleExportDataPipeline = async () => {
     if (!currentUser?.canExport) return alert("Unauthorized execution: Export blocked.");
     
+    // 1. Generate Local Download Safe copy
     const activeHeaders = ALL_COLUMNS.filter(col => currentUser.allowedColumns.includes(col.id));
     let csvContent = activeHeaders.map(h => h.label).join(",") + "\n";
 
     consolidatedRows.forEach(row => {
       const netProfit = row.revenue - row.cost - row.emi;
-      const dataMapping = { ...row, netProfit };
-      const line = activeHeaders.map(h => `"${dataMapping[h.id] || 0}"`).join(",");
+      const dataMapping = { ...row, netProfit, vehicleNo: row.id, truckType: row.type };
+      const line = activeHeaders.map(h => `"${dataMapping[h.id] !== undefined ? dataMapping[h.id] : ''}"`).join(",");
       csvContent += line + "\n";
     });
 
@@ -23,6 +24,37 @@ export default function DataIO({ currentUser, ALL_COLUMNS, consolidatedRows, onR
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    // 2. Transmit Upstream to Google Database Sheet Endpoint via POST
+    setIsSyncingDB(true);
+    try {
+      const payload = consolidatedRows.map(row => ({
+        vehicleNo: row.id,
+        type: row.type,
+        status: row.status,
+        kms: row.kms,
+        revenue: row.revenue,
+        cost: row.cost,
+        emi: row.emi,
+        received: row.received,
+        pending: row.pending
+      }));
+
+      await fetch(apiEndpoint, {
+        method: 'POST',
+        mode: 'no-cors', // standard workaround for AppScript endpoints if CORS triggers
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'sync_export', operator: currentUser.username, data: payload })
+      });
+      
+      alert("Pipeline Synced: Export push payload dispatched to main database sheet.");
+      onRefresh();
+    } catch (err) {
+      console.error("Upstream Sync Error:", err);
+      alert("Local file saved. Database target sync encountered a transmission error.");
+    } finally {
+      setIsSyncingDB(false);
+    }
   };
 
   const handleImportCSV = (e) => {
@@ -43,7 +75,9 @@ export default function DataIO({ currentUser, ALL_COLUMNS, consolidatedRows, onR
         </div>
       )}
       {currentUser.canExport && (
-        <button onClick={handleExportCSV} style={{ backgroundColor: '#10b981', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '6px', fontWeight: '700', cursor: 'pointer' }}>📤 Export CSV</button>
+        <button onClick={handleExportDataPipeline} disabled={isSyncingDB} style={{ backgroundColor: '#10b981', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '6px', fontWeight: '700', cursor: 'pointer' }}>
+          {isSyncingDB ? '📤 Syncing DB...' : '📤 Export Data'}
+        </button>
       )}
       <button onClick={onRefresh} disabled={isLoading} style={{ backgroundColor: '#0284c7', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '6px', fontWeight: '700', cursor: 'pointer' }}>
         {isLoading ? '🔄 Syncing...' : '🔄 Sync Sheets'}
