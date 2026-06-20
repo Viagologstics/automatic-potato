@@ -116,7 +116,7 @@ export default function App() {
     return (
       <div style={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0f172a', fontFamily: 'sans-serif' }}>
         <form onSubmit={handleLogin} style={{ backgroundColor: '#fff', padding: '40px', borderRadius: '12px', width: '100%', maxWidth: '360px', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)' }}>
-          <h3 style={{ margin: '0 0 4px 0', textAlign: 'center', fontSize: '1.4rem', color: '#0f172a' }}>Viago Core</h3>
+          <h3 style={{ margin: '0 0 4px 0', textAlign: 'center', fontSize: '1.4rem', color: '#0f172a' }}>Viago Express</h3>
           <p style={{ margin: '0 0 20px 0', textAlign: 'center', fontSize: '0.8rem', color: '#64748b' }}>Secure Fleet Operations Console Login</p>
           
           {loginError && <p style={{ color: '#ef4444', fontSize: '0.8rem', textAlign: 'center', backgroundColor: '#fef2f2', padding: '8px', borderRadius: '4px', border: '1px solid #fee2e2' }}>{loginError}</p>}
