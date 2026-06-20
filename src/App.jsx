@@ -148,8 +148,50 @@ export default function App() {
   dynamicLinks={dynamicLinks} 
   onLogout={() => setIsAuthenticated(false)} 
 />
-      <main style={{ flex: 1, padding: '32px', overflowX: 'hidden' }}>
-        {activeTab === 'dashboard' && (
+      {/* --- Navigation Workspace View Router --- */}
+<main style={{ flex: 1, padding: '32px', overflowY: 'auto', backgroundColor: '#f1f5f9' }}>
+  
+  {/* Fleet Console Workspace */}
+  {activeTab === 'dashboard' && (currentUser?.allowedPages || []).includes('dashboard') && (
+    <Dashboard 
+      currentUser={currentUser}
+      ALL_COLUMNS={ALL_COLUMNS}
+      consolidatedRows={consolidatedRows}
+      onRefresh={handleRefreshPipeline}
+      isLoading={isLoading}
+      apiEndpoint={API_ENDPOINT}
+      dynamicLinks={dynamicLinks}
+    />
+  )}
+
+  {/* Admin Control Tower Panel */}
+  {activeTab === 'admin' && currentUser?.role === 'admin' && (
+    <AdminPanel 
+      ALL_COLUMNS={ALL_COLUMNS}
+      users={users}
+      setUsers={setUsers}
+      dynamicLinks={dynamicLinks}
+      setDynamicLinks={setDynamicLinks}
+    />
+  )}
+
+  {/* Dynamically Mounted Connected Sheets pages */}
+  {dynamicLinks.map(link => {
+    const isPagePermitted = (currentUser?.allowedPages || []).includes(link.id) || currentUser?.role === 'admin';
+    if (activeTab === link.id && isPagePermitted) {
+      return (
+        <div key={link.id} style={{ width: '100%', height: '100%', minHeight: '80vh' }}>
+          <iframe 
+            src={link.url} 
+            style={{ width: '100%', height: '100%', border: 'none', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} 
+            title={link.name}
+          />
+        </div>
+      );
+    }
+    return null;
+  })}
+</main>        {activeTab === 'dashboard' && (
           <Dashboard liveVehicleData={liveVehicleData} currentUser={currentUser} ALL_COLUMNS={ALL_COLUMNS} onRefresh={fetchDataFromSheets} isLoading={isLoading} apiEndpoint={GOOGLE_SHEETS_API_URL} />
         )}
         {currentDynamicLink && (
