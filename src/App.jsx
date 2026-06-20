@@ -42,7 +42,6 @@ export default function App() {
 
   const fetchDataFromSheets = () => {
     setIsLoading(true);
-    // Append a cache-busting timestamp so Google Web App returns completely fresh data
     fetch(`${GOOGLE_SHEETS_API_URL}?_cb=${new Date().getTime()}`)
       .then(res => res.json())
       .then(data => {
@@ -71,7 +70,6 @@ export default function App() {
             cleanDate: rawDate,
             vehicleNo: String(item["Vehicle No."] || '').trim(),
             truckType: item["Type Of Truck"] || 'Other',
-            // 🔄 CHANGED HERE: Now pulls explicitly from your sheet's "Contract Status" header column
             status: item["Contract Status"] || item["Trip Status"] || 'COMPLETE',
             kms: kmsRun,
             revenue,
@@ -171,7 +169,7 @@ export default function App() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', fontFamily: 'Segoe UI, system-ui, sans-serif', backgroundColor: '#f1f5f9' }}>
       
-      {/* GLOBAL APPLICATION CONTROL SIDEBAR (Hidden if sheet is full screen) */}
+      {/* GLOBAL APPLICATION CONTROL SIDEBAR */}
       {(!isSheetFullScreen || activeTab !== 'googlesheet') && (
         <aside style={{ width: '260px', backgroundColor: '#0f172a', color: '#fff', padding: '24px 16px', display: 'flex', flexDirection: 'column' }}>
           <div>
@@ -200,7 +198,6 @@ export default function App() {
                 <p style={{ color: '#64748b', fontSize: '0.85rem' }}>Compiling live formula tracks from primary spreadsheet database</p>
               </div>
               
-              {/* 🔄 REFRESH BUTTON COMPONENT */}
               <button 
                 onClick={fetchDataFromSheets} 
                 disabled={isLoading}
@@ -242,20 +239,36 @@ export default function App() {
               )}
             </div>
 
-            <div style={{ backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', overflowX: 'auto' }}>
+            {/* 📋 FIXED HEIGHT SCROLLABLE CONTAINER FOR THE LEDGER */}
+            <div style={{ 
+              backgroundColor: '#fff', 
+              borderRadius: '8px', 
+              boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', 
+              overflowX: 'auto',
+              overflowY: 'auto',
+              maxHeight: 'calc(100vh - 240px)', // Keeps the viewport bound safely inside the screen
+              position: 'relative'
+            }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
                 <thead>
-                  <tr style={{ backgroundColor: '#0f172a', color: '#fff' }}>
-                    <th style={{ padding: '14px 16px' }}>Vehicle No.</th>
-                    <th style={{ padding: '14px 16px' }}>Specification</th>
-                    <th style={{ padding: '14px 16px' }}>Contract Status</th>
-                    <th style={{ padding: '14px 16px' }}>Total Distance</th>
-                    <th style={{ padding: '14px 16px' }}>Calculated Revenue</th>
-                    <th style={{ padding: '14px 16px' }}>Operating Cost</th>
-                    <th style={{ padding: '14px 16px' }}>EMI Share</th>
-                    <th style={{ padding: '14px 16px' }}>Net Earnings</th>
-                    <th style={{ padding: '14px 16px' }}>Collected</th>
-                    <th style={{ padding: '14px 16px' }}>Outstandings</th>
+                  <tr style={{ 
+                    backgroundColor: '#0f172a', 
+                    color: '#fff',
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 10,
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                  }}>
+                    <th style={{ padding: '14px 16px', backgroundColor: '#0f172a' }}>Vehicle No.</th>
+                    <th style={{ padding: '14px 16px', backgroundColor: '#0f172a' }}>Specification</th>
+                    <th style={{ padding: '14px 16px', backgroundColor: '#0f172a' }}>Contract Status</th>
+                    <th style={{ padding: '14px 16px', backgroundColor: '#0f172a' }}>Total Distance</th>
+                    <th style={{ padding: '14px 16px', backgroundColor: '#0f172a' }}>Calculated Revenue</th>
+                    <th style={{ padding: '14px 16px', backgroundColor: '#0f172a' }}>Operating Cost</th>
+                    <th style={{ padding: '14px 16px', backgroundColor: '#0f172a' }}>EMI Share</th>
+                    <th style={{ padding: '14px 16px', backgroundColor: '#0f172a' }}>Net Earnings</th>
+                    <th style={{ padding: '14px 16px', backgroundColor: '#0f172a' }}>Collected</th>
+                    <th style={{ padding: '14px 16px', backgroundColor: '#0f172a' }}>Outstandings</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -276,17 +289,27 @@ export default function App() {
                       </tr>
                     );
                   })}
-                  <tr style={{ backgroundColor: '#f8fafc', fontWeight: 'bold', borderTop: '3px solid #0f172a' }}>
-                    <td colSpan="3" style={{ padding: '16px' }}>Total System Volume ({summaryTotals.trips} trips)</td>
-                    <td>{formatCurrency(summaryTotals.kms)} km</td>
-                    <td style={{ color: '#16a34a' }}>₹{formatCurrency(summaryTotals.revenue)}</td>
-                    <td style={{ color: '#ef4444' }}>₹{formatCurrency(summaryTotals.cost)}</td>
-                    <td style={{ color: '#64748b' }}>₹{formatCurrency(summaryTotals.emi)}</td>
-                    <td style={{ color: (summaryTotals.revenue - summaryTotals.cost - summaryTotals.emi) >= 0 ? '#16a34a' : '#ef4444' }}>₹{formatCurrency(summaryTotals.revenue - summaryTotals.cost - summaryTotals.emi)}</td>
-                    <td>₹{formatCurrency(summaryTotals.received)}</td>
-                    <td style={{ color: '#ea580c' }}>₹{formatCurrency(summaryTotals.pending)}</td>
-                  </tr>
                 </tbody>
+                <tfoot>
+                  <tr style={{ 
+                    backgroundColor: '#f8fafc', 
+                    fontWeight: 'bold', 
+                    borderTop: '2px solid #0f172a',
+                    position: 'sticky',
+                    bottom: 0,
+                    zIndex: 10,
+                    boxShadow: '0 -2px 4px rgba(0,0,0,0.05)'
+                  }}>
+                    <td colSpan="3" style={{ padding: '16px', backgroundColor: '#f8fafc' }}>Total System Volume ({summaryTotals.trips} trips)</td>
+                    <td style={{ backgroundColor: '#f8fafc' }}>{formatCurrency(summaryTotals.kms)} km</td>
+                    <td style={{ color: '#16a34a', backgroundColor: '#f8fafc' }}>₹{formatCurrency(summaryTotals.revenue)}</td>
+                    <td style={{ color: '#ef4444', backgroundColor: '#f8fafc' }}>₹{formatCurrency(summaryTotals.cost)}</td>
+                    <td style={{ color: '#64748b', backgroundColor: '#f8fafc' }}>₹{formatCurrency(summaryTotals.emi)}</td>
+                    <td style={{ color: (summaryTotals.revenue - summaryTotals.cost - summaryTotals.emi) >= 0 ? '#16a34a' : '#ef4444', backgroundColor: '#f8fafc' }}>₹{formatCurrency(summaryTotals.revenue - summaryTotals.cost - summaryTotals.emi)}</td>
+                    <td style={{ backgroundColor: '#f8fafc' }}>₹{formatCurrency(summaryTotals.received)}</td>
+                    <td style={{ color: '#ea580c', backgroundColor: '#f8fafc' }}>₹{formatCurrency(summaryTotals.pending)}</td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </>
@@ -302,7 +325,6 @@ export default function App() {
               </>
             )}
 
-            {/* CONTROL PANEL BAR */}
             <div style={{ 
               display: 'flex', 
               justifyContent: 'flex-end', 
