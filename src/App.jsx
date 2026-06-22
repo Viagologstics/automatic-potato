@@ -5,7 +5,7 @@ import AdminPanel from './components/AdminPanel';
 const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbwNIO5hWPBBPriE0GcyHiOFEorI6fXgRZDEChhsHddFBEq5azLu6bjhv-wERedNIzXRpw/exec";
 
 const ALL_COLUMNS = [
-  { id: 'id', label: 'Vehicle No' },
+  { id: 'id', label: 'Vehicle Nosss' },
   { id: 'type', label: 'Truck Type' },
   { id: 'status', label: 'Current Status' },
   { id: 'kms', label: 'KMs Covered' },
