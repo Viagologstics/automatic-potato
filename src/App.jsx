@@ -167,7 +167,7 @@ const handleRefreshPipeline = async () => {
           <Dashboard 
             currentUser={currentUser}
             ALL_COLUMNS={columns}
-            consolidatedRows={consolidatedRows}
+            liveVehicleData={consolidatedRows}
             onRefresh={handleRefreshPipeline}
             isLoading={isLoading}
             apiEndpoint={API_ENDPOINT}
