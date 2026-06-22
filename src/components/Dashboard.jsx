@@ -8,28 +8,31 @@ export default function Dashboard({ liveVehicleData, currentUser, ALL_COLUMNS, o
 
   const formatCurrency = (val) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(val || 0);
 
-  const filteredRows = liveVehicleData.reduce((acc, trip) => {
+const filteredRows = liveVehicleData.reduce((acc, trip) => {
+    // Standardize variables to accommodate the Settings Mapping keys ('id' and 'type')
+    const vehicleId = trip.id || trip.vehicleNo || "";
+    const truckType = trip.type || trip.truckType || "";
+    
     const matchedStatus = statusFilter === 'all' || trip.status === statusFilter;
-    const matchedType = truckTypeFilter === 'all' || trip.truckType === truckTypeFilter;
-    const matchedSearch = trip.vehicleNo.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchedType = truckTypeFilter === 'all' || truckType === truckTypeFilter;
+    const matchedSearch = String(vehicleId).toLowerCase().includes(searchQuery.toLowerCase());
 
-    if (matchedStatus && matchedType && matchedSearch) {
-      if (!acc[trip.vehicleNo]) {
-        acc[trip.vehicleNo] = { id: trip.vehicleNo, type: trip.truckType, status: trip.status, kms: 0, revenue: 0, cost: 0, emi: 0, received: 0, pending: 0 };
+    if (matchedStatus && matchedType && matchedSearch && vehicleId) {
+      if (!acc[vehicleId]) {
+        acc[vehicleId] = { id: vehicleId, type: truckType, status: trip.status || "", kms: 0, revenue: 0, cost: 0, emi: 0, received: 0, pending: 0 };
       }
-      acc[trip.vehicleNo].kms += trip.kms;
-      acc[trip.vehicleNo].revenue += trip.revenue;
-      acc[trip.vehicleNo].cost += trip.cost;
-      acc[trip.vehicleNo].emi += trip.emi;
-      acc[trip.vehicleNo].received += trip.received;
-      acc[trip.vehicleNo].pending += trip.pending;
+      acc[vehicleId].kms += Number(trip.kms || 0);
+      acc[vehicleId].revenue += Number(trip.revenue || 0);
+      acc[vehicleId].cost += Number(trip.cost || 0);
+      acc[vehicleId].emi += Number(trip.emi || 0);
+      acc[vehicleId].received += Number(trip.received || 0);
+      acc[vehicleId].pending += Number(trip.pending || 0);
     }
     return acc;
   }, {});
-
   const consolidatedRows = Object.values(filteredRows);
-  const uniqueStatuses = [...new Set(liveVehicleData.map(item => item.status))];
-  const uniqueTypes = [...new Set(liveVehicleData.map(item => item.truckType))];
+  const uniqueStatuses = [...new Set(liveVehicleData.map(item => item.status).filter(Boolean))];
+  const uniqueTypes = [...new Set(liveVehicleData.map(item => item.type || item.truckType).filter(Boolean))];
 
   return (
     <>
