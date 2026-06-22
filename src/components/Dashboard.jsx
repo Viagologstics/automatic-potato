@@ -1,100 +1,90 @@
 import React, { useState } from 'react';
-import DataIO from './DataIO';
 
-export default function Dashboard({ liveVehicleData, currentUser, ALL_COLUMNS, onRefresh, isLoading, apiEndpoint }) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [truckTypeFilter, setTruckTypeFilter] = useState('all');
+export default function AdminPanel({ ALL_COLUMNS, users, setUsers, dynamicLinks, setDynamicLinks }) {
+  const [newUserName, setNewUserName] = useState('');
+  const [newUserPass, setNewUserPass] = useState('');
+  const [newUserCols, setNewUserCols] = useState([]);
+  const [newUserImport, setNewUserImport] = useState(false);
+  const [newUserExport, setNewUserExport] = useState(false);
+  const [newLinkName, setNewLinkName] = useState('');
+  const [newLinkUrl, setNewLinkUrl] = useState('');
 
-  const formatCurrency = (val) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(val || 0);
-
-const filteredRows = liveVehicleData.reduce((acc, trip) => {
-    // Standardize variables to accommodate the Settings Mapping keys ('id' and 'type')
-    const vehicleId = trip.id || trip.vehicleNo || "";
-    const truckType = trip.type || trip.truckType || "";
+  const handleCreateUser = (e) => {
+    e.preventDefault();
+    if (!newUserName || !newUserPass) return;
     
-    const matchedStatus = statusFilter === 'all' || trip.status === statusFilter;
-    const matchedType = truckTypeFilter === 'all' || truckType === truckTypeFilter;
-    const matchedSearch = String(vehicleId).toLowerCase().includes(searchQuery.toLowerCase());
+    // Normalize user to avoid case-sensitivity lookup issues
+    setUsers([...users, {
+      username: newUserName.trim(),
+      password: newUserPass,
+      role: 'staff',
+      allowedColumns: newUserCols.length ? newUserCols : ['vehicleNo', 'truckType'],
+      canImport: newUserImport,
+      canExport: newUserExport
+    }]);
+    
+    setNewUserName(''); setNewUserPass(''); setNewUserCols([]); setNewUserImport(false); setNewUserExport(false);
+    alert(`Account context for "${newUserName}" created and cached.`);
+  };
 
-    if (matchedStatus && matchedType && matchedSearch && vehicleId) {
-      if (!acc[vehicleId]) {
-        acc[vehicleId] = { id: vehicleId, type: truckType, status: trip.status || "", kms: 0, revenue: 0, cost: 0, emi: 0, received: 0, pending: 0 };
-      }
-      acc[vehicleId].kms += Number(trip.kms || 0);
-      acc[vehicleId].revenue += Number(trip.revenue || 0);
-      acc[vehicleId].cost += Number(trip.cost || 0);
-      acc[vehicleId].emi += Number(trip.emi || 0);
-      acc[vehicleId].received += Number(trip.received || 0);
-      acc[vehicleId].pending += Number(trip.pending || 0);
-    }
-    return acc;
-  }, {});
-  const consolidatedRows = Object.values(filteredRows);
-  const uniqueStatuses = [...new Set(liveVehicleData.map(item => item.status).filter(Boolean))];
-  const uniqueTypes = [...new Set(liveVehicleData.map(item => item.type || item.truckType).filter(Boolean))];
+  const handleAddLink = (e) => {
+    e.preventDefault();
+    if (!newLinkName || !newLinkUrl) return;
+
+    setDynamicLinks([...dynamicLinks, { 
+      id: `link_${Date.now()}`, 
+      name: newLinkName, 
+      url: newLinkUrl 
+    }]);
+    
+    setNewLinkName(''); setNewLinkUrl('');
+    alert(`Dynamic workspace view registered and mounted into sidebar navigation layout.`);
+  };
 
   return (
-    <>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <div>
-          <h1 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>Fleet Matrix</h1>
-          <p style={{ color: '#64748b', fontSize: '0.85rem' }}>Dynamic access controlled dashboard view</p>
-        </div>
-        <DataIO currentUser={currentUser} ALL_COLUMNS={ALL_COLUMNS} consolidatedRows={consolidatedRows} onRefresh={onRefresh} isLoading={isLoading} apiEndpoint={apiEndpoint} />
-      </header>
-
-      <div style={{ backgroundColor: '#fff', padding: '16px', borderRadius: '8px', display: 'flex', gap: '16px', marginBottom: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-        <div style={{ flex: 1 }}>
-          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '4px' }}>Search Registration</label>
-          <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Filter search..." style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
-        </div>
-        <div>
-          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '4px' }}>Contract Status</label>
-          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-            <option value="all">All Statuses</option>
-            {uniqueStatuses.map((st, i) => <option key={i} value={st}>{st}</option>)}
-          </select>
-        </div>
-        <div>
-          <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '700', marginBottom: '4px' }}>Fleet Specifications</label>
-          <select value={truckTypeFilter} onChange={e => setTruckTypeFilter(e.target.value)} style={{ padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-            <option value="all">All Types</option>
-            {uniqueTypes.map((tp, i) => <option key={i} value={tp}>{tp}</option>)}
-          </select>
-        </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+      <div>
+        <h1 style={{ fontSize: '1.6rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>Super Admin Security</h1>
+        <p style={{ color: '#64748b', fontSize: '0.85rem' }}>Configure user matrices and external data pipeline links</p>
       </div>
 
-      <div style={{ backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', overflow: 'auto', maxHeight: 'calc(100vh - 280px)' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#0f172a', color: '#fff' }}>
-              {ALL_COLUMNS.filter(c => currentUser.allowedColumns.includes(c.id)).map(col => (
-                <th key={col.id} style={{ padding: '14px 16px' }}>{col.label}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {consolidatedRows.map((row, idx) => {
-              const netProfit = row.revenue - row.cost - row.emi;
-              return (
-                <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  {currentUser.allowedColumns.includes('id') && <td style={{ padding: '14px 16px', fontWeight: '700' }}>{row.id}</td>}
-                  {currentUser.allowedColumns.includes('type') && <td style={{ padding: '14px 16px' }}>{row.type}</td>}
-                  {currentUser.allowedColumns.includes('status') && <td style={{ padding: '14px 16px' }}>{row.status}</td>}
-                  {currentUser.allowedColumns.includes('kms') && <td style={{ padding: '14px 16px' }}>{formatCurrency(row.kms)} km</td>}
-                  {currentUser.allowedColumns.includes('revenue') && <td style={{ padding: '14px 16px', color: '#16a34a' }}>₹{formatCurrency(row.revenue)}</td>}
-                  {currentUser.allowedColumns.includes('cost') && <td style={{ padding: '14px 16px', color: '#ef4444' }}>₹{formatCurrency(row.cost)}</td>}
-                  {currentUser.allowedColumns.includes('emi') && <td style={{ padding: '14px 16px' }}>₹{formatCurrency(row.emi)}</td>}
-                  {currentUser.allowedColumns.includes('netProfit') && <td style={{ padding: '14px 16px', fontWeight: '700', color: netProfit >= 0 ? '#16a34a' : '#ef4444' }}>₹{formatCurrency(netProfit)}</td>}
-                  {currentUser.allowedColumns.includes('received') && <td style={{ padding: '14px 16px' }}>₹{formatCurrency(row.received)}</td>}
-                  {currentUser.allowedColumns.includes('pending') && <td style={{ padding: '14px 16px', color: row.pending > 0 ? '#ea580c' : '#64748b' }}>₹{formatCurrency(row.pending)}</td>}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+        <div style={{ backgroundColor: '#fff', padding: '24px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+          <h3 style={{ margin: '0 0 16px 0' }}>Provision Access Token</h3>
+          <form onSubmit={handleCreateUser} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <input type="text" value={newUserName} onChange={e => setNewUserName(e.target.value)} placeholder="Username" style={{ padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} required />
+            <input type="password" value={newUserPass} onChange={e => setNewUserPass(e.target.value)} placeholder="Password" style={{ padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} required />
+            
+            <div>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', marginBottom: '6px' }}>Column Privileges:</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                {ALL_COLUMNS.map(col => (
+                  <label key={col.id} style={{ fontSize: '0.85rem' }}>
+                    <input type="checkbox" checked={newUserCols.includes(col.id)} onChange={(e) => {
+                      if (e.target.checked) setNewUserCols([...newUserCols, col.id]);
+                      else setNewUserCols(newUserCols.filter(c => c !== col.id));
+                    }} /> {col.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: '20px' }}>
+              <label><input type="checkbox" checked={newUserImport} onChange={e => setNewUserImport(e.target.checked)} /> Can Import</label>
+              <label><input type="checkbox" checked={newUserExport} onChange={e => setNewUserExport(e.target.checked)} /> Can Export</label>
+            </div>
+            <button type="submit" style={{ backgroundColor: '#0f172a', color: '#fff', border: 'none', padding: '12px', borderRadius: '6px', cursor: 'pointer' }}>Create User Instance</button>
+          </form>
+        </div>
+
+        <div style={{ backgroundColor: '#fff', padding: '24px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+          <h3 style={{ margin: '0 0 16px 0' }}>Mount External Layouts</h3>
+          <form onSubmit={handleAddLink} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <input type="text" value={newLinkName} onChange={e => setNewLinkName(e.target.value)} placeholder="View Name (e.g., Sub-Sheet View)" style={{ padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} required />
+            <input type="url" value={newLinkUrl} onChange={e => setNewLinkUrl(e.target.value)} placeholder="Google Sheets Embed URL Link" style={{ padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} required />
+            <button type="submit" style={{ backgroundColor: '#0284c7', color: '#fff', border: 'none', padding: '12px', borderRadius: '6px', cursor: 'pointer' }}>Mount Live Link</button>
+          </form>
+        </div>
       </div>
-    </>
+    </div>
   );
 }
