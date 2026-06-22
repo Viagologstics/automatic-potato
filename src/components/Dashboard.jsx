@@ -79,8 +79,8 @@ const filteredRows = liveVehicleData.reduce((acc, trip) => {
               const netProfit = row.revenue - row.cost - row.emi;
               return (
                 <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  {currentUser.allowedColumns.includes('vehicleNo') && <td style={{ padding: '14px 16px', fontWeight: '700' }}>{row.id}</td>}
-                  {currentUser.allowedColumns.includes('truckType') && <td style={{ padding: '14px 16px' }}>{row.type}</td>}
+                  {currentUser.allowedColumns.includes('id') && <td style={{ padding: '14px 16px', fontWeight: '700' }}>{row.id}</td>}
+                  {currentUser.allowedColumns.includes('type') && <td style={{ padding: '14px 16px' }}>{row.type}</td>}
                   {currentUser.allowedColumns.includes('status') && <td style={{ padding: '14px 16px' }}>{row.status}</td>}
                   {currentUser.allowedColumns.includes('kms') && <td style={{ padding: '14px 16px' }}>{formatCurrency(row.kms)} km</td>}
                   {currentUser.allowedColumns.includes('revenue') && <td style={{ padding: '14px 16px', color: '#16a34a' }}>₹{formatCurrency(row.revenue)}</td>}
