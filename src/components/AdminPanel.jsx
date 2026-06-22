@@ -137,22 +137,24 @@ export default function AdminPanel({ ALL_COLUMNS, users, setUsers, dynamicLinks,
             <h3 style={{ margin: '0 0 4px 0', color: '#0f172a' }}>Registered Operator Log Matrix</h3>
             <p style={{ color: '#64748b', fontSize: '0.8rem', margin: '0 0 16px 0' }}>Select an operator below to grant features, modify visibility, or edit data download scopes.</p>
             
-<select value={selectedUserIndex} onChange={e => setSelectedUserIndex(parseInt(e.target.value))} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginBottom: '16px', fontWeight: 'bold', color: '#0f172a' }}>
-  {users.map((u, idx) => (
-    <option key={idx} value={idx}>👤 {u?.username} ({u?.role?.toUpperCase()})</option>
-  ))}
-</select>
-
-{/* 🔽 PASTE THIS DIRECTLY HERE 🔽 */}
-{activeReviewUser && (
-  <div style={{ marginBottom: '12px', padding: '10px', backgroundColor: '#fff', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
-    <span style={{ display: 'block', fontSize: '0.8rem', color: '#64748b' }}>Active Access Token:</span>
-    <strong style={{ fontSize: '1rem', color: '#0f172a' }}>🔑 {activeReviewUser.password || 'None Set'}</strong>
-  </div>
-)}              {users.map((u, idx) => (
+            <select value={selectedUserIndex} onChange={e => setSelectedUserIndex(parseInt(e.target.value))} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', marginBottom: '16px', fontWeight: 'bold', color: '#0f172a' }}>
+              {users.map((u, idx) => (
                 <option key={idx} value={idx}>👤 {u?.username} ({u?.role?.toUpperCase()})</option>
               ))}
             </select>
+
+            {activeReviewUser && (
+              <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
+                <span style={{ display: 'block', fontSize: '0.8rem', color: '#64748b', marginBottom: '4px' }}>Active Access Token / Password:</span>
+                <input 
+                  type="text" 
+                  value={editPass} 
+                  disabled={activeReviewUser.role === 'admin'}
+                  onChange={e => setEditPass(e.target.value)} 
+                  style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: '700', color: '#0f172a', backgroundColor: activeReviewUser.role === 'admin' ? '#e2e8f0' : '#fff' }} 
+                />
+              </div>
+            )}
 
             {activeReviewUser && (
               <div style={{ border: '1px dashed #cbd5e1', padding: '16px', borderRadius: '6px', backgroundColor: '#f8fafc', fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -162,7 +164,6 @@ export default function AdminPanel({ ALL_COLUMNS, users, setUsers, dynamicLinks,
                   <label style={{ fontWeight: 'bold', color: '#10b981' }}><input type="checkbox" checked={editExport} disabled={activeReviewUser.role === 'admin'} onChange={e => setEditExport(e.target.checked)} /> Can Export (Download Option)</label>
                 </div>
 
-                {/* Conditional Sub-panel: Only displays configuration choices if "Can Export" is checked */}
                 {editExport && activeReviewUser.role !== 'admin' && (
                   <div style={{ backgroundColor: '#ecfdf5', padding: '12px', borderRadius: '6px', border: '1px solid #a7f3d0' }}>
                     <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '6px', color: '#065f46' }}>Admin Authorized Export Limit Scope:</label>
