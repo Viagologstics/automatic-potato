@@ -63,6 +63,24 @@ export default function AdminPanel({ ALL_COLUMNS, users, setUsers, dynamicLinks,
                     <input type="checkbox" checked={newUserCols.includes(col.id)} onChange={(e) => {
                       if (e.target.checked) setNewUserCols([...newUserCols, col.id]);
                       else setNewUserCols(newUserCols.filter(c => c !== col.id));
+                    // 1. Compute the active totals using only the rows currently visible after filtering
+const totals = visibleRows.reduce((acc, row) => {
+  // Helper function to cleanly remove currency symbols, commas, spaces, and 'km' metrics
+  const parseNum = (val) => {
+    if (!val) return 0;
+    return Number(val.toString().replace(/[₹\s,km\-]/g, '')) || 0;
+  };
+
+  return {
+    kms: acc.kms + parseNum(row.kms),
+    revenue: acc.revenue + parseNum(row.revenue),
+    cost: acc.cost + parseNum(row.cost),
+    emi: acc.emi + parseNum(row.emi),
+    netProfit: acc.netProfit + parseNum(row.netProfit),
+    received: acc.received + parseNum(row.received),
+    pending: acc.pending + parseNum(row.pending)
+  };
+}, { kms: 0, revenue: 0, cost: 0, emi: 0, netProfit: 0, received: 0, pending: 0 });
                     }} /> {col.label}
                   </label>
                 ))}
