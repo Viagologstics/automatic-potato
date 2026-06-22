@@ -24,6 +24,9 @@ export default function App() {
   const [consolidatedRows, setConsolidatedRows] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   
+  // 🎛️ Toggle State for Sidebar Sidebar Max-Width Control
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  
   const [usernameInput, setUsernameInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
 
@@ -118,14 +121,25 @@ export default function App() {
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', backgroundColor: '#f8fafc', overflow: 'hidden' }}>
-      {/* Sidebar Control Deck */}
-      <aside style={{ width: '260px', backgroundColor: '#1e293b', color: '#fff', display: 'flex', flexDirection: 'column', borderRight: '1px solid #e2e8f0' }}>
-        <div style={{ padding: '24px', borderBottom: '1px solid #334155' }}>
+      
+      {/* Sidebar Control Deck with smooth conditional width tracking */}
+      <aside style={{ 
+        width: isSidebarOpen ? '260px' : '0px', 
+        opacity: isSidebarOpen ? 1 : 0,
+        transition: 'width 0.2s ease, opacity 0.2s ease',
+        overflow: 'hidden',
+        backgroundColor: '#1e293b', 
+        color: '#fff', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        borderRight: isSidebarOpen ? '1px solid #e2e8f0' : 'none' 
+      }}>
+        <div style={{ padding: '24px', borderBottom: '1px solid #334155', whiteSpace: 'nowrap' }}>
           <h1 style={{ margin: 0, fontSize: '1.2rem', fontWeight: '800', letterSpacing: '-0.5px' }}>Viago Logistics</h1>
-          <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Operator: {currentUser?.username} ({currentUser?.role})</span>
+          <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Operator: {currentUser?.username}</span>
         </div>
         
-        <nav style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <nav style={{ flex: 1, padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', whiteSpace: 'nowrap' }}>
           {(currentUser?.allowedPages || []).includes('dashboard') && (
             <button onClick={() => setActiveTab('dashboard')} style={{ width: '100%', padding: '12px', textAlign: 'left', borderRadius: '6px', border: 'none', backgroundColor: activeTab === 'dashboard' ? '#0284c7' : 'transparent', color: '#fff', fontWeight: '600', cursor: 'pointer' }}>📊 Fleet Dashboard</button>
           )}
@@ -146,23 +160,51 @@ export default function App() {
           })}
         </nav>
 
-        <div style={{ padding: '16px', borderTop: '1px solid #334155' }}>
+        <div style={{ padding: '16px', borderTop: '1px solid #334155', whiteSpace: 'nowrap' }}>
           <button onClick={() => window.location.reload()} style={{ width: '100%', padding: '10px', backgroundColor: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '700', cursor: 'pointer', fontSize: '0.85rem' }}>🚪 Log Out</button>
         </div>
       </aside>
 
-      {/* 📐 Main Content Viewer - Optimized for Ultra-Wide Full Screen Displays */}
+      {/* 📐 Main Content Viewer - Stretch Optimized with Global Floating Sidebar Toggle */}
       <main style={{ 
         flex: 1, 
-        padding: '24px',
+        padding: '16px 24px 24px 24px',
         overflowX: 'hidden',
         overflowY: 'auto', 
         backgroundColor: '#f1f5f9',
         width: '100%',
         boxSizing: 'border-box',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        position: 'relative'
       }}>
+        
+        {/* Floating Toggle Button Row to Collapse / Open the control deck */}
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px', gap: '12px' }}>
+          <button 
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+            style={{
+              padding: '8px 14px',
+              backgroundColor: '#1e293b',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: '700',
+              fontSize: '0.85rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
+          >
+            {isSidebarOpen ? '◀ Hide Sidebar' : '▶ Show Sidebar (Full Window)'}
+          </button>
+          <span style={{ fontSize: '0.85rem', fontWeight: '600', color: '#64748b' }}>
+            {!isSidebarOpen ? '⚡ Ultrawide View Mode Active' : ''}
+          </span>
+        </div>
+
         {activeTab === 'dashboard' && (currentUser?.allowedPages || []).includes('dashboard') && (
           <div style={{ width: '100%', maxWidth: '100%', margin: '0' }}>
             <Dashboard 
@@ -193,7 +235,7 @@ export default function App() {
           const isPagePermitted = (currentUser?.allowedPages || []).includes(link.id) || currentUser?.role === 'admin';
           if (activeTab === link.id && isPagePermitted) {
             return (
-              <div key={link.id} style={{ width: '100%', height: 'calc(100vh - 80px)', minHeight: '80vh' }}>
+              <div key={link.id} style={{ width: '100%', height: 'calc(100vh - 120px)', minHeight: '75vh' }}>
                 <iframe 
                   src={link.url} 
                   style={{ width: '100%', height: '100%', border: 'none', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} 
