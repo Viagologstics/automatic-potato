@@ -82,25 +82,42 @@ export default function App() {
 
   if (!isAuthenticated) {
     return (
-      <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0f172a' }}>
-        <form onSubmit={handleLoginSubmit} style={{ backgroundColor: '#fff', padding: '32px', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.3)', width: '100%', maxWidth: '360px' }}>
-          <h2 style={{ margin: '0 0 24px 0', textAlign: 'center', color: '#1e293b', fontWeight: '800' }}>Fleet Console Login</h2>
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.85rem', fontWeight: '600', color: '#475569' }}>Username</label>
-            <input type="text" value={usernameInput} onChange={e => setUsernameInput(e.target.value)} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
-          </div>
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.85rem', fontWeight: '600', color: '#475569' }}>Password</label>
-            <input type="password" value={passwordInput} onChange={e => setPasswordInput(e.target.value)} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
-          </div>
-          <button type="submit" style={{ width: '100%', padding: '12px', backgroundColor: '#0284c7', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: '700', cursor: 'pointer' }}>Authenticate</button>
-        </form>
+      <div style={{ display: 'flex', height: '100vh', width: '100vw', backgroundColor: '#0f172a', boxSizing: 'border-box', overflow: 'hidden' }}>
+        
+        {/* Left Side: Brand Workspace Panel */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '64px', backgroundColor: '#1e293b', color: '#fff' }}>
+          <h1 style={{ fontSize: '3rem', fontWeight: '900', margin: '0 0 16px 0', letterSpacing: '-1px' }}>Viago Core</h1>
+          <p style={{ fontSize: '1.1rem', color: '#94a3b8', margin: 0, maxWidth: '500px', lineHeight: '1.6' }}>
+            Enterprise Fleet Management Matrix & Live Pipeline Console. Secure operator access gateway.
+          </p>
+        </div>
+
+        {/* Right Side: Responsive Login Viewport */}
+        <div style={{ width: '480px', backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px', boxSizing: 'border-box' }}>
+          <form onSubmit={handleLoginSubmit} style={{ width: '100%', maxWidth: '360px' }}>
+            <h2 style={{ margin: '0 0 8px 0', color: '#1e293b', fontWeight: '800', fontSize: '1.8rem' }}>Operator Sign In</h2>
+            <p style={{ margin: '0 0 32px 0', color: '#64748b', fontSize: '0.9rem' }}>Please input your secure database token nodes.</p>
+            
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.85rem', fontWeight: '600', color: '#475569' }}>Username</label>
+              <input type="text" value={usernameInput} onChange={e => setUsernameInput(e.target.value)} required style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }} />
+            </div>
+            
+            <div style={{ marginBottom: '32px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.85rem', fontWeight: '600', color: '#475569' }}>Password</label>
+              <input type="password" value={passwordInput} onChange={e => setPasswordInput(e.target.value)} required style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }} />
+            </div>
+            
+            <button type="submit" style={{ width: '100%', padding: '14px', backgroundColor: '#0284c7', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '0.95rem' }}>Authenticate Node</button>
+          </form>
+        </div>
+
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', backgroundColor: '#f8fafc' }}>
+    <div style={{ display: 'flex', height: '100vh', width: '100vw', backgroundColor: '#f8fafc', overflow: 'hidden' }}>
       {/* Sidebar Control Deck */}
       <aside style={{ width: '260px', backgroundColor: '#1e293b', color: '#fff', display: 'flex', flexDirection: 'column', borderRight: '1px solid #e2e8f0' }}>
         <div style={{ padding: '24px', borderBottom: '1px solid #334155' }}>
@@ -135,58 +152,59 @@ export default function App() {
       </aside>
 
       {/* 📐 Main Content Viewer - Optimized for Ultra-Wide Full Screen Displays */}
-<main style={{ 
-  flex: 1, 
-  padding: '24px',          // Balanced padding to protect edges
-  overflowX: 'hidden',       // Prevents overall window broken breakages
-  overflowY: 'auto', 
-  backgroundColor: '#f1f5f9',
-  width: '100%',
-  boxSizing: 'border-box',
-  display: 'flex',
-  flexDirection: 'column'
-}}>
-  {activeTab === 'dashboard' && (currentUser?.allowedPages || []).includes('dashboard') && (
-    <div style={{ width: '100%', width: '100vw', maxWidth: '100%', margin: '0' }}>
-      <Dashboard 
-        currentUser={currentUser}
-        ALL_COLUMNS={ALL_COLUMNS}
-        consolidatedRows={consolidatedRows}
-        onRefresh={handleRefreshPipeline}
-        isLoading={isLoading}
-        apiEndpoint={API_ENDPOINT}
-        dynamicLinks={dynamicLinks}
-      />
-    </div>
-  )}
+      <main style={{ 
+        flex: 1, 
+        padding: '24px',
+        overflowX: 'hidden',
+        overflowY: 'auto', 
+        backgroundColor: '#f1f5f9',
+        width: '100%',
+        boxSizing: 'border-box',
+        display: 'flex',
+        flexDirection: 'column'
+      }}>
+        {activeTab === 'dashboard' && (currentUser?.allowedPages || []).includes('dashboard') && (
+          <div style={{ width: '100%', maxWidth: '100%', margin: '0' }}>
+            <Dashboard 
+              currentUser={currentUser}
+              ALL_COLUMNS={ALL_COLUMNS}
+              consolidatedRows={consolidatedRows}
+              onRefresh={handleRefreshPipeline}
+              isLoading={isLoading}
+              apiEndpoint={API_ENDPOINT}
+              dynamicLinks={dynamicLinks}
+            />
+          </div>
+        )}
 
-  {activeTab === 'admin' && currentUser?.role === 'admin' && (
-    <div style={{ width: '100%', maxWidth: '100%', margin: '0' }}>
-      <AdminPanel 
-        ALL_COLUMNS={ALL_COLUMNS}
-        users={users}
-        setUsers={setUsers}
-        dynamicLinks={dynamicLinks}
-        setDynamicLinks={setDynamicLinks}
-      />
-    </div>
-  )}
+        {activeTab === 'admin' && currentUser?.role === 'admin' && (
+          <div style={{ width: '100%', maxWidth: '100%', margin: '0' }}>
+            <AdminPanel 
+              ALL_COLUMNS={ALL_COLUMNS}
+              users={users}
+              setUsers={setUsers}
+              dynamicLinks={dynamicLinks}
+              setDynamicLinks={setDynamicLinks}
+            />
+          </div>
+        )}
 
-  {dynamicLinks.map(link => {
-    const isPagePermitted = (currentUser?.allowedPages || []).includes(link.id) || currentUser?.role === 'admin';
-    if (activeTab === link.id && isPagePermitted) {
-      return (
-        <div key={link.id} style={{ width: '100%', height: 'calc(100vh - 80px)', minHeight: '80vh' }}>
-          <iframe 
-            src={link.url} 
-            style={{ width: '100%', height: '100%', border: 'none', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} 
-            title={link.name}
-          />
-        </div>
-      );
-    }
-    return null;
-  })}
-</main>    </div>
+        {dynamicLinks.map(link => {
+          const isPagePermitted = (currentUser?.allowedPages || []).includes(link.id) || currentUser?.role === 'admin';
+          if (activeTab === link.id && isPagePermitted) {
+            return (
+              <div key={link.id} style={{ width: '100%', height: 'calc(100vh - 80px)', minHeight: '80vh' }}>
+                <iframe 
+                  src={link.url} 
+                  style={{ width: '100%', height: '100%', border: 'none', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }} 
+                  title={link.name}
+                />
+              </div>
+            );
+          }
+          return null;
+        })}
+      </main>
+    </div>
   );
 }
