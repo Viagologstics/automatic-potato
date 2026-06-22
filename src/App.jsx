@@ -4,18 +4,18 @@ import AdminPanel from './components/AdminPanel';
 
 const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbwNIO5hWPBBPriE0GcyHiOFEorI6fXgRZDEChhsHddFBEq5azLu6bjhv-wERedNIzXRpw/exec";
 
-//const ALL_COLUMNS = [
- // { id: 'id', label: 'Vehicle No' },
- // { id: 'type', label: 'Truck Type' },
-  //{ id: 'status', label: 'Current Status' },
-  //{ id: 'kms', label: 'KMs Covered' },
-  //{ id: 'revenue', label: 'Gross Revenue' },
-  //{ id: 'cost', label: 'Trip Cost' },
-  //{ id: 'emi', label: 'EMI Amount' },
-  //{ id: 'netProfit', label: 'Net Profit' },
-  //{ id: 'received', label: 'Payment Received' },
-  //{ id: 'pending', label: 'Balance Outstanding' }
-//];
+const ALL_COLUMNS = [
+  { id: 'id', label: 'Vehicle No' },
+  { id: 'type', label: 'Truck Type' },
+  { id: 'status', label: 'Current Status' },
+  { id: 'kms', label: 'KMs Covered' },
+  { id: 'revenue', label: 'Gross Revenue' },
+  { id: 'cost', label: 'Trip Cost' },
+  { id: 'emi', label: 'EMI Amount' },
+  { id: 'netProfit', label: 'Net Profit' },
+  { id: 'received', label: 'Payment Received' },
+  { id: 'pending', label: 'Balance Outstanding' }
+];
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -43,48 +43,21 @@ export default function App() {
       allowedColumns: ['id', 'type', 'status', 'kms', 'revenue', 'cost', 'emi', 'netProfit', 'received', 'pending']
     }
   ]);
-// Place this around Line 45, right before handleRefreshPipeline
-  const [columns, setColumns] = useState([]);
 
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const response = await fetch(`${API_ENDPOINT}?action=get_settings`);
-        const data = await response.json();
-        if (data && data.columns) {
-          setColumns(data.columns);
-        }
-      } catch (err) {
-        console.error("Error loading sheet column configurations:", err);
+  const handleRefreshPipeline = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_ENDPOINT}?action=read_fleet`);
+      const data = await response.json();
+      if (data && data.records) {
+        setConsolidatedRows(data.records);
       }
-    };
-    
-    fetchSettings();
-  }, []);
-  
-const handleRefreshPipeline = async () => {
-  setIsLoading(true);
-  try {
-    const response = await fetch(`${API_ENDPOINT}?action=read_fleet`);
-    const data = await response.json();
-    if (data && data.records && data.records.length > 0) {
-      setConsolidatedRows(data.records);
-      
-      // Extract keys dynamically from the first record
-      const dynamicColumns = Object.keys(data.records[0]).map(key => ({
-        id: key,
-        label: key.charAt(0).toUpperCase() + key.slice(1) // Rough casing capitalization
-      }));
-      
-      // If you create a state for columns, you would save it here:
-      // setColumns(dynamicColumns);
+    } catch (err) {
+      console.error("Pipeline Sync Error:", err);
+    } finally {
+      setIsLoading(false);
     }
-  } catch (err) {
-    console.error("Pipeline Sync Error:", err);
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -166,8 +139,8 @@ const handleRefreshPipeline = async () => {
         {activeTab === 'dashboard' && (currentUser?.allowedPages || []).includes('dashboard') && (
           <Dashboard 
             currentUser={currentUser}
-            ALL_COLUMNS={columns}
-            liveVehicleData={consolidatedRows}
+            ALL_COLUMNS={ALL_COLUMNS}
+            consolidatedRows={consolidatedRows}
             onRefresh={handleRefreshPipeline}
             isLoading={isLoading}
             apiEndpoint={API_ENDPOINT}
@@ -177,7 +150,7 @@ const handleRefreshPipeline = async () => {
 
         {activeTab === 'admin' && currentUser?.role === 'admin' && (
           <AdminPanel 
-            ALL_COLUMNS={columns}
+            ALL_COLUMNS={ALL_COLUMNS}
             users={users}
             setUsers={setUsers}
             dynamicLinks={dynamicLinks}
